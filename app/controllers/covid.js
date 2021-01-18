@@ -71,3 +71,8 @@ exports.readCsv = async (req, res) => {
     );
   return res.send('OK');
 };
+
+exports.getCases = async (req, res) => {
+  const cases = await CovidCases.findAll();
+  return res.send(cases);
+};
