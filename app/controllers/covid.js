@@ -2,6 +2,8 @@ const csv = require('csvtojson');
 const request = require('request');
 const logger = require('../logger');
 const { CovidCases } = require('../models');
+const Sequelize = require('sequelize');
+const { Op } = require('sequelize');
 
 exports.readCsv = async (req, res) => {
   await csv()
@@ -75,4 +77,14 @@ exports.readCsv = async (req, res) => {
 exports.getCases = async (req, res) => {
   const cases = await CovidCases.findAll();
   return res.send(cases);
+};
+
+exports.stats = async (req, res) => {
+  const { deaths } = req.query;
+  const stats = await CovidCases.findAll({
+    where: { fallecido: { [Op.like]: deaths === 'true' ? 'SI' : '%' } },
+    attributes: ['residencia_provincia_nombre', [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']],
+    group: 'residencia_provincia_nombre'
+  });
+  return res.send(stats);
 };
