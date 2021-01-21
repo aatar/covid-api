@@ -11,7 +11,7 @@ const logger = require('../logger');
 const { CovidCases } = require('../models');
 const Sequelize = require('sequelize');
 const { Op } = require('sequelize');
-const { PROVINCES } = require('./constants');
+const { PROVINCES /* POBLATION*/ } = require('./constants');
 
 exports.readCsv = async (req, res) => {
   await CovidCases.destroy({
@@ -129,13 +129,62 @@ exports.count = async (req, res) => {
 };
 
 exports.stats = async (req, res) => {
-  const { deaths } = req.query;
-  const stats = await CovidCases.findAll({
-    where: { fallecido: { [Op.like]: deaths === 'true' ? 'SI' : '%' } },
-    attributes: ['residencia_provincia_nombre', [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']],
-    group: 'residencia_provincia_nombre'
+  const provinceCases = await CovidCases.findAll({
+    attributes: [
+      ['residencia_provincia_nombre', 'provincia'],
+      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+    ],
+    group: 'residencia_provincia_nombre',
+    order: [['residencia_provincia_nombre', 'ASC']]
   });
-  return res.send(stats);
+  // const countryCases = await CovidCases.find({
+  //   attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']]
+  // });
+  const provinceDeaths = await CovidCases.findAll({
+    where: { fallecido: { [Op.eq]: 'SI' } },
+    attributes: [
+      ['residencia_provincia_nombre', 'provincia'],
+      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+    ],
+    group: 'residencia_provincia_nombre',
+    order: [['residencia_provincia_nombre', 'ASC']]
+  });
+  // const countryDeaths = await CovidCases.find({
+  //   where: { fallecido: { [Op.eq]: 'SI' } },
+  //   attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']]
+  // });
+  // const poblation = POBLATION;
+
+  let i1 = 0,
+    i2 = 0;
+  let response = [];
+
+  while (i1 < provinceCases.length && i2 < provinceDeaths.length) {
+    if (provinceCases[i1].dataValues.provincia === provinceDeaths[i2].dataValues.provincia) {
+      response = [
+        ...response,
+        {
+          provincia: provinceCases[i1].dataValues.provincia,
+          casos: provinceCases[i1].dataValues.cantidad,
+          muertes: provinceDeaths[i2].dataValues.cantidad
+        }
+      ];
+      i1 += 1;
+      i2 += 1;
+    } else {
+      response = [
+        ...response,
+        {
+          provincia: provinceCases[i1].dataValues.provincia,
+          casos: provinceCases[i1].dataValues.cantidad,
+          muertes: 0
+        }
+      ];
+      i1 += 1;
+    }
+  }
+  // eslint-disable-next-line dot-notation
+  return res.send(response);
 };
 
 exports.lastUpdate = async (req, res) => {

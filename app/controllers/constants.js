@@ -96,3 +96,106 @@ exports.PROVINCES = [
     province: 'Tierra del Fuego'
   }
 ];
+
+exports.POBLATION = [
+  {
+    provincia: 'Argentina',
+    población: 45376763
+  },
+  {
+    provincia: 'Buenos Aires',
+    población: 17541141
+  },
+  {
+    provincia: 'CABA',
+    población: 3075646
+  },
+  {
+    provincia: 'Catamarca',
+    población: 415438
+  },
+  {
+    provincia: 'Córdoba',
+    población: 3760450
+  },
+  {
+    provincia: 'Corrientes',
+    población: 1120801
+  },
+  {
+    provincia: 'Chaco',
+    población: 1204541
+  },
+  {
+    provincia: 'Chubut',
+    población: 618994
+  },
+  {
+    provincia: 'Entre Ríos',
+    población: 1385961
+  },
+  {
+    provincia: 'Formosa',
+    población: 605193
+  },
+  {
+    provincia: 'Jujuy',
+    población: 779212
+  },
+  {
+    provincia: 'La Pampa',
+    población: 358428
+  },
+  {
+    provincia: 'La Rioja',
+    población: 398648
+  },
+  {
+    provincia: 'Mendoza',
+    población: 2010363
+  },
+  {
+    provincia: 'Misiones',
+    población: 1274992
+  },
+  {
+    provincia: 'Neuquén',
+    población: 664057
+  },
+  {
+    provincia: 'Río Negro',
+    población: 747610
+  },
+  {
+    provincia: 'Salta',
+    población: 1441988
+  },
+  {
+    provincia: 'San Juan',
+    población: 789489
+  },
+  {
+    provincia: 'San Luis',
+    población: 514610
+  },
+  {
+    provincia: 'Santa Cruz',
+    población: 374756
+  },
+  {
+    provincia: 'Santa Fe',
+    población: 3563390
+  },
+  {
+    provincia: 'Santiago del Estero',
+    población: 988245
+  },
+  {
+    provincia: 'Tucumán',
+    población: 1714487
+  },
+  {
+    provincia: 'Tierra del Fuego',
+    población: 173432
+  }
+];
