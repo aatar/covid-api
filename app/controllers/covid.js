@@ -4,9 +4,8 @@
 /* eslint-disable no-extra-parens */
 /* eslint-disable no-nested-ternary */
 const csv = require('csvtojson');
-// const csv = require('csv-parser');
 const fs = require('fs');
-const request = require('request');
+// const request = require('request');
 const logger = require('../logger');
 const { CovidCases } = require('../models');
 const Sequelize = require('sequelize');
@@ -14,86 +13,177 @@ const { Op } = require('sequelize');
 const { PROVINCES /* POBLATION*/ } = require('./constants');
 
 exports.readCsv = async (req, res) => {
-  await CovidCases.destroy({
-    where: {},
-    truncate: true
+  req.setTimeout(1000000000);
+  // await CovidCases.destroy({
+  //   where: {},
+  //   truncate: true
+  // });
+  const count = await CovidCases.find({
+    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'count']]
   });
-  await csv()
-    .fromStream(request.get('https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.csv'))
+  const fileReadStream = fs.createReadStream('Covid19Casos.csv');
+  // eslint-disable-next-line no-unused-vars
+  let invalidLineCount = 0;
+  let lineIndex = 0;
+  await csv({ delimiter: ',', fork: true })
+    .preFileLine(fileLineString => {
+      const invalidLinePattern = /^['"].*[^"'];/;
+      if (
+        (lineIndex !== 0 && lineIndex < count.dataValues.count) ||
+        invalidLinePattern.test(fileLineString)
+      ) {
+        logger.info(`Line #${lineIndex + 1} is invalid, skipping`);
+        // eslint-disable-next-line no-param-reassign
+        fileLineString = '';
+        invalidLineCount++;
+      }
+      lineIndex += 1;
+      return fileLineString;
+    })
+    .fromStream(fileReadStream)
     .subscribe(
       json => {
-        logger.info(json);
-        const {
-          id_evento_caso,
-          sexo,
-          edad,
-          edad_años_meses,
-          residencia_pais_nombre,
-          residencia_provincia_nombre,
-          residencia_departamento_nombre,
-          carga_provincia_nombre,
-          fecha_inicio_sintomas,
-          fecha_apertura,
-          sepi_apertura,
-          fecha_internacion,
-          cuidado_intensivo,
-          fecha_cui_intensivo,
-          fallecido,
-          fecha_fallecimiento,
-          // eslint-disable-next-line id-length
-          asistencia_respiratoria_mecanica,
-          carga_provincia_id,
-          origen_financiamiento,
-          clasificacion,
-          clasificacion_resumen,
-          residencia_provincia_id,
-          fecha_diagnostico,
-          residencia_departamento_id,
-          ultima_actualizacion
-        } = json;
-        return CovidCases.create({
-          id_evento_caso,
-          sexo,
-          edad,
-          edad_anios_meses: edad_años_meses,
-          residencia_pais_nombre,
-          residencia_provincia_nombre,
-          residencia_departamento_nombre,
-          carga_provincia_nombre,
-          fecha_inicio_sintomas,
-          fecha_apertura,
-          sepi_apertura,
-          fecha_internacion,
-          cuidado_intensivo,
-          fecha_cui_intensivo,
-          fallecido,
-          fecha_fallecimiento,
-          // eslint-disable-next-line id-length
-          asistencia_respiratoria_mecanica,
-          carga_provincia_id,
-          origen_financiamiento,
-          clasificacion,
-          clasificacion_resumen,
-          residencia_provincia_id,
-          fecha_diagnostico,
-          residencia_departamento_id,
-          ultima_actualizacion
-        });
+        try {
+          console.log(json);
+          const {
+            id_evento_caso,
+            sexo,
+            edad,
+            edad_años_meses,
+            residencia_pais_nombre,
+            residencia_provincia_nombre,
+            residencia_departamento_nombre,
+            carga_provincia_nombre,
+            fecha_inicio_sintomas,
+            fecha_apertura,
+            sepi_apertura,
+            fecha_internacion,
+            cuidado_intensivo,
+            fecha_cui_intensivo,
+            fallecido,
+            fecha_fallecimiento,
+            // eslint-disable-next-line id-length
+            asistencia_respiratoria_mecanica,
+            carga_provincia_id,
+            origen_financiamiento,
+            clasificacion,
+            clasificacion_resumen,
+            residencia_provincia_id,
+            fecha_diagnostico,
+            residencia_departamento_id,
+            ultima_actualizacion
+          } = json;
+          return CovidCases.create({
+            id_evento_caso,
+            sexo,
+            edad,
+            edad_anios_meses: edad_años_meses,
+            residencia_pais_nombre,
+            residencia_provincia_nombre,
+            residencia_departamento_nombre,
+            carga_provincia_nombre,
+            fecha_inicio_sintomas,
+            fecha_apertura,
+            sepi_apertura,
+            fecha_internacion,
+            cuidado_intensivo,
+            fecha_cui_intensivo,
+            fallecido,
+            fecha_fallecimiento,
+            // eslint-disable-next-line id-length
+            asistencia_respiratoria_mecanica,
+            carga_provincia_id,
+            origen_financiamiento,
+            clasificacion,
+            clasificacion_resumen,
+            residencia_provincia_id,
+            fecha_diagnostico,
+            residencia_departamento_id,
+            ultima_actualizacion
+          });
+        } catch (error) {
+          return new Promise(resolve => resolve());
+        }
       },
-      null,
-      null
+      err => {
+        logger.info(err);
+      },
+      () => {
+        logger.info('success');
+      }
     );
   return res.send('OK');
 };
 
-exports.readCsv2 = (req, res) => {
-  const results = [];
+// const csv = require('csv-parser');
+// exports.readCsv = async (req, res) => {
+//   await CovidCases.destroy({
+//     where: {},
+//     truncate: true
+//   });
 
-  fs.createReadStream('Covid19Casos.csv')
-    .pipe(csv())
-    .on('data', data => results.push(data))
-    .on('end', () => res.send(results));
-};
+//   fs.createReadStream('Covid19Casos.csv')
+//     .pipe(csv())
+//     .on('data', data => {
+//       const {
+//         id_evento_caso,
+//         sexo,
+//         edad,
+//         edad_años_meses,
+//         residencia_pais_nombre,
+//         residencia_provincia_nombre,
+//         residencia_departamento_nombre,
+//         carga_provincia_nombre,
+//         fecha_inicio_sintomas,
+//         fecha_apertura,
+//         sepi_apertura,
+//         fecha_internacion,
+//         cuidado_intensivo,
+//         fecha_cui_intensivo,
+//         fallecido,
+//         fecha_fallecimiento,
+//         // eslint-disable-next-line id-length
+//         asistencia_respiratoria_mecanica,
+//         carga_provincia_id,
+//         origen_financiamiento,
+//         clasificacion,
+//         clasificacion_resumen,
+//         residencia_provincia_id,
+//         fecha_diagnostico,
+//         residencia_departamento_id,
+//         ultima_actualizacion
+//       } = data;
+//       return CovidCases.create({
+//         id_evento_caso,
+//         sexo,
+//         edad,
+//         edad_anios_meses: edad_años_meses,
+//         residencia_pais_nombre,
+//         residencia_provincia_nombre,
+//         residencia_departamento_nombre,
+//         carga_provincia_nombre,
+//         fecha_inicio_sintomas,
+//         fecha_apertura,
+//         sepi_apertura,
+//         fecha_internacion,
+//         cuidado_intensivo,
+//         fecha_cui_intensivo,
+//         fallecido,
+//         fecha_fallecimiento,
+//         // eslint-disable-next-line id-length
+//         asistencia_respiratoria_mecanica,
+//         carga_provincia_id,
+//         origen_financiamiento,
+//         clasificacion,
+//         clasificacion_resumen,
+//         residencia_provincia_id,
+//         fecha_diagnostico,
+//         residencia_departamento_id,
+//         ultima_actualizacion
+//       });
+//     })
+//     .on('end', () => res.send('OK, Finished'));
+// };
 
 exports.getCases = async (req, res) => {
   const cases = await CovidCases.findAll();
