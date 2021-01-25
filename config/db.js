@@ -1,4 +1,5 @@
 const config = require('../config').common.database;
+const logger = require('../app/logger');
 
 module.exports = {
   development: {
@@ -7,7 +8,8 @@ module.exports = {
     database: config.name,
     host: config.host,
     dialect: 'postgres',
-    logging: true
+    logging: logger.info,
+    operatorsAliases: false
   },
   testing: {
     username: config.username,
@@ -15,7 +17,8 @@ module.exports = {
     database: config.name,
     host: config.host,
     dialect: 'postgres',
-    logging: false
+    logging: false,
+    operatorsAliases: false
   },
   production: {
     username: config.username,
@@ -23,6 +26,7 @@ module.exports = {
     database: config.name,
     host: config.host,
     dialect: 'postgres',
-    logging: false
+    logging: false,
+    operatorsAliases: false
   }
 };

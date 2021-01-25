@@ -26,7 +26,7 @@
   "cacheDirectories": [
     "node_modules"
   ],
-  "main": "app.js",
+  "main": "server.js",
   "author": "Wolox",
   "homepage": "https://github.com/aatar/ma-expressV2",
   "license": "MIT",

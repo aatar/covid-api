@@ -44,7 +44,7 @@ exports.readCsv = async (req, res) => {
     .subscribe(
       json => {
         try {
-          console.log(json);
+          logger.info(json);
           const {
             id_evento_caso,
             sexo,
