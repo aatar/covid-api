@@ -1,4 +1,4 @@
-const { readCsv, count, getCases, stats, provinces, lastUpdate } = require('./controllers/covid');
+const { readCsv, count, getCases, stats, summary, provinces, lastUpdate } = require('./controllers/covid');
 
 exports.init = app => {
   app.get('/', (req, res) => res.send('Welcome to Heroku'));
@@ -6,6 +6,7 @@ exports.init = app => {
   app.get('/count', count);
   app.get('/get-cases', getCases);
   app.get('/stats', stats);
+  app.get('/summary', summary);
   app.get('/provinces', provinces);
   app.get('/last_update', lastUpdate);
 };
