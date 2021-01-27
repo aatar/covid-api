@@ -8,7 +8,8 @@ const {
   lastUpdate,
   provinceCount,
   provinceStats,
-  provinceSummary
+  provinceSummary,
+  provinceCases
 } = require('./controllers/covid');
 
 exports.init = app => {
@@ -20,6 +21,7 @@ exports.init = app => {
   app.get('/summary', summary);
   app.get('/provinces', provinces);
   app.get('/last_update', lastUpdate);
+  app.get('/province/:slug', provinceCases);
   app.get('/province/:slug/count', provinceCount);
   app.get('/province/:slug/stats', provinceStats);
   app.get('/province/:slug/summary', provinceSummary);

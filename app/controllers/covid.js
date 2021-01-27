@@ -149,6 +149,36 @@ exports.count = async (req, res) => {
   return res.send(count);
 };
 
+exports.provinceCases = async (req, res) => {
+  const { icu, dead, respirator, classification, from, to } = req.query;
+  const { slug } = req.params;
+  const { province } = PROVINCES.filter(p => p.slug === slug)[0];
+  const cases = await CovidCases.findAll({
+    where: {
+      carga_provincia_nombre: { [Op.eq]: province },
+      cuidado_intensivo: icu ? (icu === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
+      fallecido: dead ? (dead === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
+      asistencia_respiratoria_mecanica: respirator
+        ? respirator === 'true'
+          ? { [Op.eq]: 'SI' }
+          : { [Op.eq]: 'NO' }
+        : { [Op.like]: '%' },
+      clasificacion_resumen: classification
+        ? classification === 'confirmed'
+          ? { [Op.eq]: 'Confirmado' }
+          : classification === 'suspect'
+          ? { [Op.eq]: 'Sospechoso' }
+          : { [Op.eq]: 'Descartado' }
+        : { [Op.like]: '%' },
+      fecha_apertura: {
+        [Op.gte]: from ? from : '2000-01-01',
+        [Op.lte]: to ? to : '2100-01-01'
+      }
+    }
+  });
+  return res.send(cases);
+};
+
 exports.provinceCount = async (req, res) => {
   const { icu, dead, respirator, classification, from, to } = req.query;
   const { slug } = req.params;
