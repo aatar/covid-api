@@ -15,7 +15,7 @@ Complete.
 You need the following:
 
 * [Node.js v10.14.1](https://nodejs.org/) (it comes with NPM v6.4.1).
-* [PostgreSQL v9.6](https://www.oracle.com/java/technologies/javase-downloads.html), or superior.
+* [PostgreSQL v9.6](https://www.postgresql.org/), or superior.
 
 ## Build
 

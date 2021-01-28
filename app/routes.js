@@ -1,8 +1,12 @@
-const { readCsv, count, getCases, stats, provinces, lastUpdate } = require('./controllers/covid');
+const { count, getCases, stats, provinces, lastUpdate } = require('./controllers/covid');
+
+const descriptor = {
+  name: 'covid-api',
+  version: '0.1.0'
+};
 
 exports.init = app => {
-  app.get('/', (req, res) => res.send('Welcome to Heroku'));
-  app.get('/read-csv', readCsv);
+  app.get('/', (req, res) => res.send(descriptor));
   app.get('/count', count);
   app.get('/get-cases', getCases);
   app.get('/stats', stats);

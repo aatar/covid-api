@@ -1,18 +1,16 @@
 const { expressMiddleware, expressRequestIdMiddleware } = require('express-wolox-logger'),
   express = require('express'),
   bodyParser = require('body-parser'),
-  path = require('path'),
   config = require('./config'),
   routes = require('./app/routes'),
   errors = require('./app/middlewares/errors'),
   paginate = require('express-paginate'),
-  cors = require('cors'),
-  {
-    DEFAULT_BODY_SIZE_LIMIT,
-    DEFAULT_PARAMETER_LIMIT,
-    PAGINATE_LIMIT,
-    PAGINATE_MAX_LIMIT
-  } = require('./constants');
+  cors = require('cors');
+
+const DEFAULT_BODY_SIZE_LIMIT = 1024 * 1024 * 10;
+const DEFAULT_PARAMETER_LIMIT = 10000;
+const PAGINATE_LIMIT = 3;
+const PAGINATE_MAX_LIMIT = 50;
 
 const bodyParserJsonConfig = () => ({
   parameterLimit: config.common.api.parameterLimit || DEFAULT_PARAMETER_LIMIT,
@@ -26,8 +24,6 @@ const bodyParserUrlencodedConfig = () => ({
 });
 
 const app = express();
-
-app.use('/docs', express.static(path.join(__dirname, 'docs')));
 
 // Client must send "Content-Type: application/json" header
 app.use(bodyParser.json(bodyParserJsonConfig()));
