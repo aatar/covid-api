@@ -1,9 +1,9 @@
 const app = require('./app'),
-  migrationsManager = require('./migrations'),
   config = require('./config'),
-  logger = require('./app/logger');
+  logger = require('./app/logger'),
+  migrationsManager = require('./migrations');
 
-const port = config.common.api.port || 8080;
+const { port } = config.server;
 
 Promise.resolve()
   .then(() => migrationsManager.check())

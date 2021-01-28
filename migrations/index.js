@@ -1,7 +1,7 @@
-const Umzug = require('umzug'),
-  config = require('./../config/'),
+const config = require('./../config/'),
+  logger = require('../app/logger'),
   { sequelize } = require('../app/models'),
-  logger = require('../app/logger');
+  Umzug = require('umzug');
 
 exports.check = () => {
   const umzug = new Umzug({
@@ -13,7 +13,7 @@ exports.check = () => {
         sequelize.getQueryInterface(),
         sequelize.constructor,
         () => {
-          throw new Error('Migration tried to use old style "done" callback.upgrade');
+          throw new Error('Migration tried to use old style "done" callback.upgrade.');
         }
       ],
       path: `${__dirname}/migrations`,
@@ -22,12 +22,12 @@ exports.check = () => {
   });
   return umzug.pending().then(migrations => {
     if (migrations.length) {
-      if (!config.isProduction) {
-        return Promise.reject(new Error('Pending migrations, run: npm run migrations'));
+      if (config.environment !== 'production') {
+        return Promise.reject(new Error('Pending migrations, run: npm run migrations.'));
       }
       return umzug.up().catch(err => {
         logger.error(err);
-        return Promise.reject(new Error('There are pending migrations that could not be executed'));
+        return Promise.reject(new Error('There are pending migrations that could not be executed.'));
       });
     }
     return Promise.resolve();
