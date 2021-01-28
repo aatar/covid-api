@@ -4,117 +4,12 @@
 /* eslint-disable id-length */
 /* eslint-disable no-extra-parens */
 /* eslint-disable no-nested-ternary */
-const csv = require('csvtojson');
-const fs = require('fs');
-// const request = require('request');
-const logger = require('../logger');
+/* eslint-disable max-lines */
+/* eslint-disable max-len */
 const { CovidCases } = require('../models');
 const Sequelize = require('sequelize');
 const { Op } = require('sequelize');
 const { PROVINCES, POBLATION } = require('./constants');
-
-exports.readCsv = async (req, res) => {
-  req.setTimeout(1000000000);
-  // await CovidCases.destroy({
-  //   where: {},
-  //   truncate: true
-  // });
-  const count = await CovidCases.find({
-    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'count']]
-  });
-  const fileReadStream = fs.createReadStream('Covid19Casos.csv');
-  // eslint-disable-next-line no-unused-vars
-  let invalidLineCount = 0;
-  let lineIndex = 0;
-  await csv({ delimiter: ',', fork: true })
-    .preFileLine(fileLineString => {
-      const invalidLinePattern = /^['"].*[^"'];/;
-      if (
-        (lineIndex !== 0 && lineIndex < count.dataValues.count) ||
-        invalidLinePattern.test(fileLineString)
-      ) {
-        logger.info(`Line #${lineIndex + 1} is invalid, skipping`);
-        // eslint-disable-next-line no-param-reassign
-        fileLineString = '';
-        invalidLineCount++;
-      }
-      lineIndex += 1;
-      return fileLineString;
-    })
-    .fromStream(fileReadStream)
-    .subscribe(
-      json => {
-        try {
-          console.log(json);
-          const {
-            id_evento_caso,
-            sexo,
-            edad,
-            edad_años_meses,
-            residencia_pais_nombre,
-            residencia_provincia_nombre,
-            residencia_departamento_nombre,
-            carga_provincia_nombre,
-            fecha_inicio_sintomas,
-            fecha_apertura,
-            sepi_apertura,
-            fecha_internacion,
-            cuidado_intensivo,
-            fecha_cui_intensivo,
-            fallecido,
-            fecha_fallecimiento,
-            // eslint-disable-next-line id-length
-            asistencia_respiratoria_mecanica,
-            carga_provincia_id,
-            origen_financiamiento,
-            clasificacion,
-            clasificacion_resumen,
-            residencia_provincia_id,
-            fecha_diagnostico,
-            residencia_departamento_id,
-            ultima_actualizacion
-          } = json;
-          return CovidCases.create({
-            id_evento_caso,
-            sexo,
-            edad,
-            edad_anios_meses: edad_años_meses,
-            residencia_pais_nombre,
-            residencia_provincia_nombre,
-            residencia_departamento_nombre,
-            carga_provincia_nombre,
-            fecha_inicio_sintomas,
-            fecha_apertura,
-            sepi_apertura,
-            fecha_internacion,
-            cuidado_intensivo,
-            fecha_cui_intensivo,
-            fallecido,
-            fecha_fallecimiento,
-            // eslint-disable-next-line id-length
-            asistencia_respiratoria_mecanica,
-            carga_provincia_id,
-            origen_financiamiento,
-            clasificacion,
-            clasificacion_resumen,
-            residencia_provincia_id,
-            fecha_diagnostico,
-            residencia_departamento_id,
-            ultima_actualizacion
-          });
-        } catch (error) {
-          return new Promise(resolve => resolve());
-        }
-      },
-      err => {
-        logger.info(err);
-      },
-      () => {
-        logger.info('success');
-      }
-    );
-  return res.send('OK');
-};
 
 exports.getCases = async (req, res) => {
   const cases = await CovidCases.findAll();
@@ -144,7 +39,7 @@ exports.count = async (req, res) => {
         [Op.lte]: to ? to : '2100-01-01'
       }
     },
-    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'count']]
+    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'count']]
   });
   return res.send(count);
 };
@@ -175,7 +70,7 @@ exports.provinceCases = async (req, res) => {
         [Op.lte]: to ? to : '2100-01-01'
       }
     },
-    attributes: { exclude: ['id'] }
+    attributes: { exclude: ['id_evento_caso'] }
   });
   return res.send(cases);
 };
@@ -206,7 +101,7 @@ exports.provinceCount = async (req, res) => {
         [Op.lte]: to ? to : '2100-01-01'
       }
     },
-    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'count']]
+    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'count']]
   });
   return res.send(count);
 };
@@ -222,7 +117,7 @@ exports.provinceStats = async (req, res) => {
     },
     attributes: [
       ['carga_provincia_nombre', 'provincia'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'carga_provincia_nombre'
   });
@@ -234,7 +129,7 @@ exports.provinceStats = async (req, res) => {
     },
     attributes: [
       ['carga_provincia_nombre', 'provincia'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'carga_provincia_nombre'
   });
@@ -281,7 +176,7 @@ exports.provinceSummary = async (req, res) => {
     },
     attributes: [
       ['fecha_apertura', 'fecha'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'fecha_apertura',
     order: [['fecha_apertura', 'ASC']]
@@ -310,7 +205,7 @@ exports.provinceSummary = async (req, res) => {
     },
     attributes: [
       ['fecha_apertura', 'fecha'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'fecha_apertura',
     order: [['fecha_apertura', 'ASC']]
@@ -389,7 +284,7 @@ exports.stats = async (req, res) => {
     },
     attributes: [
       ['carga_provincia_nombre', 'provincia'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'carga_provincia_nombre',
     order: [['carga_provincia_nombre', 'ASC']]
@@ -398,20 +293,20 @@ exports.stats = async (req, res) => {
     where: {
       clasificacion_resumen: { [Op.eq]: 'Confirmado' }
     },
-    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']]
+    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']]
   });
   let provinceDeaths = await CovidCases.findAll({
     where: { fallecido: { [Op.eq]: 'SI' }, clasificacion_resumen: { [Op.eq]: 'Confirmado' } },
     attributes: [
       ['carga_provincia_nombre', 'provincia'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'carga_provincia_nombre',
     order: [['carga_provincia_nombre', 'ASC']]
   });
   const countryDeaths = await CovidCases.find({
     where: { fallecido: { [Op.eq]: 'SI' }, clasificacion_resumen: { [Op.eq]: 'Confirmado' } },
-    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']]
+    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']]
   });
   const poblation = POBLATION;
 
@@ -491,7 +386,7 @@ exports.summary = async (req, res) => {
     },
     attributes: [
       ['fecha_apertura', 'fecha'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'fecha_apertura',
     order: [['fecha_apertura', 'ASC']]
@@ -519,7 +414,7 @@ exports.summary = async (req, res) => {
     },
     attributes: [
       ['fecha_apertura', 'fecha'],
-      [Sequelize.fn('COUNT', Sequelize.col('id')), 'cantidad']
+      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'fecha_apertura',
     order: [['fecha_apertura', 'ASC']]
@@ -594,7 +489,13 @@ exports.lastUpdate = async (req, res) => {
   const covidCase = await CovidCases.findOne({
     where: {}
   });
-  return res.send({ last_update: covidCase.ultima_actualizacion });
+  if (covidCase) {
+    return res.send({ last_update: covidCase.ultima_actualizacion });
+  }
+  return res.send({
+    error: 'EmptyDataset',
+    message: "Cant't get a single record and his last update date because the dataset is empty."
+  });
 };
 
 exports.provinces = (req, res) => res.send(PROVINCES);

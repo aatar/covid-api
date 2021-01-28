@@ -48,4 +48,5 @@ node_modules
 # VS Code
 .vscode/
 
-Covid19Casos.csv
+# CSV databases
+*.csv
