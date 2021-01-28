@@ -72,6 +72,7 @@
 	"repository": "github:aatar/covid-api",
 	"resolutions": {},
 	"scripts": {
+		"dataset": "python -m http.server 8081 --bind 127.0.0.1 --directory ./",
 		"lint": "eslint \"**/*.js\" --ignore-pattern ./.eslintrc.js",
 		"lint-fix": "eslint \"**/*.js\" --fix --ignore-pattern ./.eslintrc.js",
 		"migrations": "sequelize db:migrate",

@@ -44,7 +44,7 @@ const baseConfig = {
     password: process.env.DB_PASSWORD || 'postgres'
   },
   app: {
-    covidDataset: process.env.COVID_DATASET,
+    covidDataset: process.env.COVID_DATASET || 'http://localhost:8081/dataset.csv',
     cronScheduling: process.env.CRON_SCHEDULING || '0 0 20 * * *',
     localDataset: process.env.LOCAL_DATASET || 'dataset.csv'
   }
