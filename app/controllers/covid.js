@@ -174,7 +174,8 @@ exports.provinceCases = async (req, res) => {
         [Op.gte]: from ? from : '2000-01-01',
         [Op.lte]: to ? to : '2100-01-01'
       }
-    }
+    },
+    attributes: { exclude: ['id'] }
   });
   return res.send(cases);
 };
