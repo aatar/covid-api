@@ -10,7 +10,7 @@ This API is an improvement of [another COVID-19 API](https://www.it.itba.edu.ar/
 
 ## Documentation
 
-The format and the dataset itself is obtained from the [National Directorate of Epidemiology and Analysis of Health Situation](https://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina). It updates every day at _20:00_ (UTC-3). You can change the source of the dataset, however.
+The format and the dataset itself is obtained from the [National Directorate of Epidemiology and Analysis of Health Situation](http://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina). It updates every day at _20:00_ (UTC-3). You can change the source of the dataset, however.
 
 ## Requirements
 
@@ -59,25 +59,24 @@ UPLOAD_THRESHOLD=8192
 
 Where:
 
-* `NODE_ENV`: one of `development`, `testing` or `production`.
-
-* `HOST`: the interface where the server will listen (_e.g._, _0.0.0.0_).
-* `PORT`: the port where to expose the server API of this project.
-
-* `DB_HOST`: the IP or URI of the database host (_e.g._, _localhost_).
-* `DB_NAME_DEV`: the name of the development's database.
-* `DB_NAME_TEST`: the name of the test's database.
-* `DB_NAME`: the name of the production' database.
-* `DB_PASSWORD`: the password to access the database.
-* `DB_PORT`: the port to access the database (usually _5432_ for PostgreSQL).
-* `DB_USERNAME`: the user to access the database.
-
-* `COVID_DATASET`: the URL where to get the SARS-CoV-2 dataset (in _CSV_ format). Supports HTTP and HTTPS protocols.
-* `CRON_SCHEMA`: the cron-schema of the scheduler. Set by default every day at _21:00_ (_1_ hour after official dataset update).
-* `FIRE_ON_DEPLOY`: if true, when the server deploys for first time or during a restart, it will download and store the entire dataset.
-* `LOCAL_DATASET`: the name of the file where to store the downloaded dataset (relative to the root of the project).
-* `UPLOAD_TARGET`: how many records should be stored in database before logging the current count during a database update.
-* `UPLOAD_THRESHOLD`: how many records will transfer the application to the database in a bulk _upsert_ procedure.
+| Parameter          | Description                                                                                                         |
+|:------------------:|---------------------------------------------------------------------------------------------------------------------|
+| `NODE_ENV`         | One of `development`, `testing` or `production`. |
+| `HOST`             | The interface where the server will listen (_e.g._, _0.0.0.0_). |
+| `PORT`             | The port where to expose the server API of this project. |
+| `DB_HOST`          | The IP or URI of the database host (_e.g._, _localhost_). |
+| `DB_NAME_DEV`      | The name of the development's database. |
+| `DB_NAME_TEST`     | The name of the test's database. |
+| `DB_NAME`          | The name of the production' database. |
+| `DB_PASSWORD`      | The password to access the database. |
+| `DB_PORT`          | The port to access the database (usually _5432_ for PostgreSQL). |
+| `DB_USERNAME`      | The user to access the database. |
+| `COVID_DATASET`    | The URL where to get the SARS-CoV-2 dataset (in _CSV_ format). Supports HTTP and HTTPS protocols. |
+| `CRON_SCHEMA`      | The cron-schema of the scheduler. Set by default every day at _21:00_ (_1_ hour after official dataset update). |
+| `FIRE_ON_DEPLOY`   | If true, when the server deploys for first time or during a restart, it will download and store the entire dataset. |
+| `LOCAL_DATASET`    | The name of the file where to store the downloaded dataset (relative to the root of the project). |
+| `UPLOAD_TARGET`    | How many records should be stored in database before logging the current count during a database update. |
+| `UPLOAD_THRESHOLD` | How many records will transfer the application to the database in a bulk _upsert_ procedure. |
 
 Run this in the root of the repository to finally run the project:
 
