@@ -4,7 +4,6 @@ module.exports = {
   database: {
     dialect: process.env.DB_DIALECT || 'postgres',
     database: process.env.DB_NAME_DEV || 'postgres',
-    logging: logger.info,
-    operatorsAliases: false
+    logging: logger.info
   }
 };

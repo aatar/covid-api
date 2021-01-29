@@ -18,7 +18,7 @@ exports.getCases = async (req, res) => {
 
 exports.count = async (req, res) => {
   const { icu, dead, respirator, classification, from, to } = req.query;
-  const count = await CovidCases.find({
+  const count = await CovidCases.findOne({
     where: {
       cuidado_intensivo: icu ? (icu === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
       fallecido: dead ? (dead === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
@@ -79,7 +79,7 @@ exports.provinceCount = async (req, res) => {
   const { icu, dead, respirator, classification, from, to } = req.query;
   const { slug } = req.params;
   const { province } = PROVINCES.filter(p => p.slug === slug)[0];
-  const count = await CovidCases.find({
+  const count = await CovidCases.findOne({
     where: {
       carga_provincia_nombre: { [Op.eq]: province },
       cuidado_intensivo: icu ? (icu === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
@@ -110,7 +110,7 @@ exports.provinceStats = async (req, res) => {
   req.setTimeout(1000000000);
   const { slug } = req.params;
   const { province } = PROVINCES.filter(p => p.slug === slug)[0];
-  const provinceCases = await CovidCases.find({
+  const provinceCases = await CovidCases.findOne({
     where: {
       carga_provincia_nombre: { [Op.eq]: province },
       clasificacion_resumen: { [Op.eq]: 'Confirmado' }
@@ -121,7 +121,7 @@ exports.provinceStats = async (req, res) => {
     ],
     group: 'carga_provincia_nombre'
   });
-  const provinceDeaths = await CovidCases.find({
+  const provinceDeaths = (await CovidCases.findOne({
     where: {
       carga_provincia_nombre: { [Op.eq]: province },
       fallecido: { [Op.eq]: 'SI' },
@@ -132,7 +132,11 @@ exports.provinceStats = async (req, res) => {
       [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
     ],
     group: 'carga_provincia_nombre'
-  });
+  })) || {
+    dataValues: {
+      cantidad: 0
+    }
+  };
   const { poblacion } = POBLATION.filter(p => p.provincia === province)[0];
 
   const response = {
@@ -289,7 +293,7 @@ exports.stats = async (req, res) => {
     group: 'carga_provincia_nombre',
     order: [['carga_provincia_nombre', 'ASC']]
   });
-  const countryCases = await CovidCases.find({
+  const countryCases = await CovidCases.findOne({
     where: {
       clasificacion_resumen: { [Op.eq]: 'Confirmado' }
     },
@@ -304,7 +308,7 @@ exports.stats = async (req, res) => {
     group: 'carga_provincia_nombre',
     order: [['carga_provincia_nombre', 'ASC']]
   });
-  const countryDeaths = await CovidCases.find({
+  const countryDeaths = await CovidCases.findOne({
     where: { fallecido: { [Op.eq]: 'SI' }, clasificacion_resumen: { [Op.eq]: 'Confirmado' } },
     attributes: [[Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']]
   });

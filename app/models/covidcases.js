@@ -1,4 +1,7 @@
+/* eslint-disable id-length */
 /* eslint-disable new-cap */
+/* eslint-disable no-empty-function */
+
 module.exports = (sequelize, Sequelize) => {
   const CovidCases = sequelize.define(
     'CovidCases',
@@ -70,7 +73,6 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.STRING(16),
         allowNull: true
       },
-      // eslint-disable-next-line id-length
       asistencia_respiratoria_mecanica: {
         type: Sequelize.STRING(4),
         allowNull: true
@@ -109,10 +111,70 @@ module.exports = (sequelize, Sequelize) => {
       }
     },
     {
-      timestamps: false
+      timestamps: false,
+      indexes: [
+        {
+          name: 'id_clasificacion_index',
+          unique: true,
+          fields: [
+            {
+              attribute: 'id_evento_caso',
+              order: 'ASC'
+            },
+            'clasificacion_resumen'
+          ]
+        },
+        {
+          name: 'id_fallecido_index',
+          unique: true,
+          fields: [
+            {
+              attribute: 'id_evento_caso',
+              order: 'ASC'
+            },
+            'fallecido'
+          ]
+        },
+        {
+          name: 'id_provincia_index',
+          unique: true,
+          fields: [
+            {
+              attribute: 'id_evento_caso',
+              order: 'ASC'
+            },
+            'carga_provincia_nombre'
+          ]
+        },
+        {
+          name: 'id_fecha_index',
+          unique: true,
+          fields: [
+            {
+              attribute: 'id_evento_caso',
+              order: 'ASC'
+            },
+            {
+              attribute: 'fecha_apertura',
+              order: 'ASC'
+            }
+          ]
+        },
+        {
+          name: 'id_icu_asistencia_index',
+          unique: true,
+          fields: [
+            {
+              attribute: 'id_evento_caso',
+              order: 'ASC'
+            },
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica'
+          ]
+        }
+      ]
     }
   );
-  // eslint-disable-next-line no-empty-function
   CovidCases.associate = () => {};
   return CovidCases;
 };

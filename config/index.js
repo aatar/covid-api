@@ -29,24 +29,27 @@ const baseConfig = {
   environment: process.env.NODE_ENV || 'development',
   server: {
     host: process.env.HOST || 'localhost',
-    port: process.env.PORT || 8080,
+    port: parseInt(process.env.PORT) || 8080,
     http: {
-      bodySizeLimit: process.env.BODY_SIZE_LIMIT || 1024 * 1024 * 10,
-      paginateLimit: process.env.PAGINATE_LIMIT || 3,
-      paginateMaxLimit: process.env.PAGINATE_MAX_LIMIT || 50,
-      parameterLimit: process.env.PARAMETER_LIMIT || 10000
+      bodySizeLimit: parseInt(process.env.BODY_SIZE_LIMIT) || 1024 * 1024 * 10,
+      paginateLimit: parseInt(process.env.PAGINATE_LIMIT) || 3,
+      paginateMaxLimit: parseInt(process.env.PAGINATE_MAX_LIMIT) || 50,
+      parameterLimit: parseInt(process.env.PARAMETER_LIMIT) || 10000
     }
   },
   database: {
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
+    port: parseInt(process.env.DB_PORT) || 5432,
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres'
   },
   app: {
     covidDataset: process.env.COVID_DATASET || 'http://localhost:8081/dataset.csv',
-    cronScheduling: process.env.CRON_SCHEDULING || '0 0 20 * * *',
-    localDataset: process.env.LOCAL_DATASET || 'dataset.csv'
+    cronSchema: process.env.CRON_SCHEMA || '0 0 20 * * *',
+    fireOnDeploy: process.env.FIRE_ON_DEPLOY === 'true',
+    localDataset: process.env.LOCAL_DATASET || 'dataset_.csv',
+    updateTarget: parseInt(process.env.UPDATE_TARGET) || 1e5,
+    uploadThreshold: parseInt(process.env.UPLOAD_THRESHOLD) || 8192
   }
 };
 
