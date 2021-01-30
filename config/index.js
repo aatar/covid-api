@@ -48,6 +48,7 @@ const baseConfig = {
     cronSchema: process.env.CRON_SCHEMA || '0 0 20 * * *',
     fireOnDeploy: process.env.FIRE_ON_DEPLOY === 'true',
     localDataset: process.env.LOCAL_DATASET || 'dataset_.csv',
+    retryDownload: parseInt(process.env.RETRY_DOWNLOAD) || 10 * 60,
     updateTarget: parseInt(process.env.UPDATE_TARGET) || 1e5,
     uploadThreshold: parseInt(process.env.UPLOAD_THRESHOLD) || 8192
   }

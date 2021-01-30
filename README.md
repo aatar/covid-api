@@ -53,6 +53,7 @@ COVID_DATASET=http://localhost:8081/dataset.csv
 CRON_SCHEMA=0 0 21 * * *
 FIRE_ON_DEPLOY=true
 LOCAL_DATASET=dataset_.csv
+RETRY_DOWNLOAD=600
 UPDATE_TARGET=100000
 UPLOAD_THRESHOLD=8192
 ```
@@ -75,6 +76,7 @@ Where:
 | `CRON_SCHEMA`      | The cron-schema of the scheduler. Set by default every day at _21:00_ (_1_ hour after official dataset update). |
 | `FIRE_ON_DEPLOY`   | If true, when the server deploys for first time or during a restart, it will download and store the entire dataset. |
 | `LOCAL_DATASET`    | The name of the file where to store the downloaded dataset (relative to the root of the project). |
+| `RETRY_DOWNLOAD`   | A time in seconds the server should wait before retry another download-and-store of the dataset. |
 | `UPLOAD_TARGET`    | How many records should be stored in database before logging the current count during a database update. |
 | `UPLOAD_THRESHOLD` | How many records will transfer the application to the database in a bulk _upsert_ procedure. |
 

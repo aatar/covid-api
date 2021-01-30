@@ -5,6 +5,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-mixed-operators */
 /* eslint-disable prettier/prettier */
+/* eslint-disable max-classes-per-file */
 
 const config = require('../../config'),
   csv = require('csvtojson'),
@@ -35,6 +36,17 @@ const UPDATE_SCHEMA = [
 const UPDATE_TARGET = config.app.updateTarget;
 
 /*
+ * Error al conectarse con un servidor para descargar contenido.
+ */
+class ConnectionRefusedError extends Error {
+  constructor(endpoint, message) {
+    super(message);
+    this.name = 'ConnectionRefusedError';
+    this.endpoint = endpoint;
+  }
+}
+
+/*
  * Error al descargar un recurso.
  */
 class DownloadError extends Error {
@@ -46,12 +58,26 @@ class DownloadError extends Error {
   }
 }
 
+/*
+ * Error al descargar un recurso incompleto.
+ */
+class IncompleteDownloadError extends Error {
+  constructor(downloaded, size, message) {
+    super(message);
+    this.name = 'IncompleteDownloadError';
+    this.downloaded = downloaded;
+    this.size = size;
+  }
+}
+
 module.exports = {
   /*
    * Todas las excepciones disponibles para este módulo.
    */
   exception: {
-    DownloadError
+    ConnectionRefusedError,
+    DownloadError,
+    IncompleteDownloadError
   },
 
   /*
@@ -63,25 +89,45 @@ module.exports = {
       const destinationPath = path.join(__dirname, `../../${destination}`);
       const file = fs.createWriteStream(destinationPath);
       const protocol = new URL(endpoint).protocol === HTTPS_SCHEMA ? https : http;
-      protocol.get(endpoint, response => {
+      let size = 0;
+      const request = protocol.get(endpoint, response => {
         if (response.statusCode === OK) {
-          log.info(`Downloading resource of ${response.headers[CONTENT_LENGTH]} bytes...`);
+          size = parseInt(response.headers[CONTENT_LENGTH]);
+          log.info(`Downloading resource of ${size} bytes...`);
           response.pipe(file);
         } else {
-          const error = new DownloadError(
+          const exception = new DownloadError(
             response,
             `Cannot download resource from '${endpoint}' in '${destinationPath}'.`
           );
-          reject(error);
+          reject(exception);
         }
+      });
+      request.on('error', error => {
+        log.error(error);
+        const exception = new ConnectionRefusedError(
+          endpoint,
+          `Cannot connect with '${endpoint}'. Server seems down.`
+        );
+        reject(exception);
       });
       file.on(FINISH_EVENT, error => {
         if (error) {
           reject(error);
         } else {
           const time = process.hrtime(startTime);
-          log.info(`Resource successfully downloaded in ${time[0] + 1E-9 * time[1]} s.`);
-          resolve(destinationPath);
+          const downloaded = fs.statSync(destinationPath).size;
+          if (downloaded === size) {
+            log.info(`Resource successfully downloaded in ${time[0] + 1E-9 * time[1]} s.`);
+            resolve(destinationPath);
+          } else {
+            const completed = 100.0 * (downloaded / size);
+            const exception = new IncompleteDownloadError(
+              downloaded, size,
+              `The downloaded resource was incomplete: '${downloaded}' bytes obtained (${completed} %).`
+            );
+            reject(exception);
+          }
         }
       });
     });
