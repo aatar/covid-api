@@ -6,7 +6,7 @@
 
 An API for querying SARS-CoV-2 cases in Argentina.
 
-This API is an improvement of [another COVID-19 API](https://www.it.itba.edu.ar/api/v1/swagger/). It has the same endpoints, but works over a database on-disk instead of memory, so it supports larger datasets (of several _GiB_).
+This API is an improvement of [another COVID-19 API](https://covid19api.it.itba.edu.ar/api/v1/swagger/). It has the same endpoints, but works over a database on-disk instead of memory, so it supports larger datasets (of several _GiB_).
 
 ## Documentation
 
