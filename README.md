@@ -49,11 +49,13 @@ DB_PORT=5432
 DB_USERNAME=postgres
 
 # Application:
+CACHE_SIZE=128
 COVID_DATASET=http://localhost:8081/dataset.csv
 CRON_SCHEMA=0 0 21 * * *
 FIRE_ON_DEPLOY=true
 LOCAL_DATASET=dataset_.csv
 RETRY_DOWNLOAD=600
+SHRINKING_FACTOR=0.5
 UPDATE_TARGET=100000
 UPLOAD_THRESHOLD=8192
 ```
@@ -72,11 +74,13 @@ Where:
 | `DB_PASSWORD`      | The password to access the database. |
 | `DB_PORT`          | The port to access the database (usually _5432_ for PostgreSQL). |
 | `DB_USERNAME`      | The user to access the database. |
+| `CACHE_SIZE`       | The maximum size of the in-memory deterministic cache (in MiB). |
 | `COVID_DATASET`    | The URL where to get the SARS-CoV-2 dataset (in _CSV_ format). Supports HTTP and HTTPS protocols. |
 | `CRON_SCHEMA`      | The cron-schema of the scheduler. Set by default every day at _21:00_ (_1_ hour after official dataset update). |
 | `FIRE_ON_DEPLOY`   | If true, when the server deploys for first time or during a restart, it will download and store the entire dataset. |
 | `LOCAL_DATASET`    | The name of the file where to store the downloaded dataset (relative to the root of the project). |
 | `RETRY_DOWNLOAD`   | A time in seconds the server should wait before retry another download-and-store of the dataset. |
+| `SHRINKING_FACTOR` | Specifies the minimum ratio to delete in case of a fully loaded cache. |
 | `UPLOAD_TARGET`    | How many records should be stored in database before logging the current count during a database update. |
 | `UPLOAD_THRESHOLD` | How many records will transfer the application to the database in a bulk _upsert_ procedure. |
 

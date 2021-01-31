@@ -1,15 +1,23 @@
 /* eslint-disable max-lines */
+/*
+ * Endpoints para consultar la base de datos de casos de SARS-CoV-2 en la
+ * Argentina. La API expuesta está basada en una versión anterior diseñada por
+ * otros autores (ver README), aunque esta versión es más robusta debido a que
+ * emplea una base de datos en disco y por lo tanto soporta datasets de varios
+ * GiBs.
+ */
+
 /* eslint-disable complexity */
-/* eslint-disable indent */
 /* eslint-disable id-length */
+/* eslint-disable indent */
+/* eslint-disable max-len */
 /* eslint-disable no-extra-parens */
 /* eslint-disable no-nested-ternary */
-/* eslint-disable max-lines */
-/* eslint-disable max-len */
-const { CovidCases } = require('../models');
-const Sequelize = require('sequelize');
-const { Op } = require('sequelize');
-const { PROVINCES, POBLATION } = require('./constants');
+
+const { CovidCases } = require('../models'),
+  { Op } = require('sequelize'),
+  { PROVINCES, POBLATION } = require('./constants'),
+  Sequelize = require('sequelize');
 
 exports.getCases = async (req, res) => {
   const cases = await CovidCases.findAll();

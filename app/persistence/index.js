@@ -145,7 +145,15 @@ module.exports = {
    * Almacena un dataset en la base de datos.
    */
   store(dataset) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve_, reject_) => {
+      const resolve = x => {
+        config.global.updating = false;
+        resolve_(x);
+      };
+      const reject = x => {
+        config.global.updating = false;
+        reject_(x);
+      };
       const startTime = process.hrtime();
       const stream = fs.createReadStream(dataset);
       const buffer = [];
@@ -159,6 +167,7 @@ module.exports = {
             delete json.edad_años_meses;
             buffer.push(json);
             if (buffer.length === THRESHOLD) {
+              config.global.updating = true;
               await CovidCases.bulkCreate(buffer, { updateOnDuplicate: UPDATE_SCHEMA })
                 .then(() => {
                   uploaded += buffer.length;

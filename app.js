@@ -5,9 +5,16 @@ const { expressMiddleware, expressRequestIdMiddleware } = require('express-wolox
   errors = require('./app/middlewares/errors'),
   express = require('express'),
   paginate = require('express-paginate'),
+  project = require('./package.json'),
   routes = require('./app/routes');
 
 const httpConfig = config.server.http;
+
+/*
+ * Constantes.
+ */
+const PROJECT_NAME = project.name.substring(1 + project.name.indexOf('/'));
+const MIME_TYPE = `application/vnd.${PROJECT_NAME}-v${project.version}+json`;
 
 const bodyParserJsonConfig = () => ({
   limit: httpConfig.bodySizeLimit,
@@ -22,12 +29,15 @@ const bodyParserUrlencodedConfig = () => ({
 
 const app = express();
 
-// Client must send "Content-Type: application/json" header:
 app.use(bodyParser.json(bodyParserJsonConfig()));
 app.use(bodyParser.urlencoded(bodyParserUrlencodedConfig()));
 app.use(expressRequestIdMiddleware);
 app.use(cors());
 app.use(paginate.middleware(httpConfig.paginateLimit, httpConfig.paginateMaxLimit));
+app.use((req, res, next) => {
+  res.type(MIME_TYPE);
+  next();
+});
 
 if (config.environment !== 'testing') {
   app.use(expressMiddleware);
