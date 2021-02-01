@@ -6,7 +6,8 @@ const { expressMiddleware, expressRequestIdMiddleware } = require('express-wolox
   express = require('express'),
   paginate = require('express-paginate'),
   project = require('./package.json'),
-  routes = require('./app/routes');
+  routes = require('./app/routes'),
+  { cacheTrap } = require('./app/cache');
 
 const httpConfig = config.server.http;
 
@@ -38,6 +39,7 @@ app.use((req, res, next) => {
   res.type(MIME_TYPE);
   next();
 });
+app.use(cacheTrap);
 
 if (config.environment !== 'testing') {
   app.use(expressMiddleware);

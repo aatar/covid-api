@@ -16,13 +16,18 @@
  * caché-hit como es esperado (i.e., la normalización es deerminística).
  */
 
+/* eslint-disable no-underscore-dangle */
+
 const config = require('../../config'),
   log = require('../logger');
 
 /*
  * Constantes.
  */
+const CACHE_HEADER = 'X-COVID-API-Deterministic-Endpoint';
 const CACHE_SIZE = 1024 * 1024 * config.app.cacheSize;
+const CONTENT_LENGTH = 'content-length';
+const MAXIMUM_CACHEABLE_SIZE = 1024 * 1024 * config.app.maximumCacheableSize;
 const SHRINKING_FACTOR = config.app.shrinkingFactor;
 const QUERY_SCHEMA = new Set()
   .add('classification')
@@ -33,9 +38,10 @@ const QUERY_SCHEMA = new Set()
   .add('to');
 
 /*
- * La caché.
+ * La caché y la caché temporal regulada.
  */
 const cache = new Map();
+const throttledCache = new Map();
 let sizeInBytes = 0;
 
 /*
@@ -54,6 +60,26 @@ const deterministic = request => {
 };
 
 /*
+ * Indica si la caché está habilitada o no.
+ */
+const isEnabled = () => config.global.caching === true;
+
+/*
+ * Construye el ranking the endpoints de la caché.
+ */
+const ranking = () => {
+  const ranking_ = [];
+  for (const [endpoint, record] of cache) {
+    ranking_.push([endpoint, record]);
+  }
+  ranking_.sort((x, y) => {
+    const result = x[1].hits - y[1].hits;
+    return result === 0 ? x[1].size - y[1].size : result;
+  });
+  return ranking_;
+};
+
+/*
  * El proceso de reducción de caché emplea un ranking de endpoints ordenados
  * por cantidad de hits y tamaño en bytes de forma ascendente. De esta forma,
  * el algoritmo elimina las entradas menos usadas y a la vez menos pesadas
@@ -62,23 +88,24 @@ const deterministic = request => {
  */
 const shrink = () => {
   log.info(`Removing at least ${100 * SHRINKING_FACTOR} % of the cache...`);
-  const ranking = [];
-  for (const [endpoint, record] of cache) {
-    ranking.push([endpoint, record]);
-  }
-  ranking.sort((x, y) => {
-    const result = x[1].hits - y[1].hits;
-    return result === 0 ? x[1].size - y[1].size : result;
-  });
+  const ranking_ = ranking();
   const targetSize = CACHE_SIZE * (1 - SHRINKING_FACTOR);
-  for (let i = 0; i < ranking.length && targetSize < sizeInBytes; ++i) {
-    sizeInBytes -= ranking[i][1].size;
-    cache.delete(ranking[i][0]);
+  for (let i = 0; i < ranking_.length && targetSize < sizeInBytes; ++i) {
+    sizeInBytes -= ranking_[i][1].size;
+    cache.delete(ranking_[i][0]);
   }
   const sizeInMiB = sizeInBytes / (1024 * 1024);
   log.info(`Cache successfully shrinked. The new size is ${sizeInBytes} bytes (${sizeInMiB} MiB).`);
 };
 
+/*
+ * Almacena efectivamente un objeto en forma de string en la caché. Al hacerlo
+ * emplea el endpoint determinístico como clave, y agrega junto con el objeto
+ * la cantidad de cache-hits y el tamaño en bytes. Nótese que el tamaño
+ * almacenado no es tamaño real del objeto, si no más bien la cantidad de
+ * memoria requerida en la aplicación. En caso de superar el tamaño máximo
+ * permitido, se ejecuta el proceso de reducción (shrink).
+ */
 const save = (endpoint, payload) => {
   const json = JSON.stringify(payload);
   sizeInBytes += 2 * json.length;
@@ -102,18 +129,45 @@ module.exports = {
    */
   cached(controller) {
     return (req, res) => {
-      const endpoint = deterministic(req);
-      if (cache.has(endpoint)) {
-        const record = cache.get(endpoint);
-        ++record.hits;
-        log.info(`Cache hit! Total hits for this endpoint: ${record.hits}.`);
-        return res.send(record.payload);
+      if (isEnabled()) {
+        const endpoint = deterministic(req);
+        if (cache.has(endpoint)) {
+          const record = cache.get(endpoint);
+          ++record.hits;
+          log.info(`Cache hit! Total hits for this endpoint: ${record.hits}.`);
+          return res.send(record.payload);
+        }
+        log.info('Cache miss!');
+        const cacher = Object.create(null);
+        cacher.send = payload => res.send(save(endpoint, payload));
+        return controller(req, cacher);
       }
-      log.info('Cache miss!');
-      const cacher = Object.create(null);
-      cacher.send = payload => res.send(save(endpoint, payload));
-      return controller(req, cacher);
+      return controller(req, res);
     };
+  },
+
+  /*
+   * Middleware para atrapar objetos con regulación de caché.
+   */
+  cacheTrap(req, res, next) {
+    res.on('finish', () => {
+      const endpoint = res.get(CACHE_HEADER);
+      const size = res.get(CONTENT_LENGTH);
+      if (endpoint && size) {
+        log.info(`Trapped object with throttled-cache of size: ${2 * size} bytes.`);
+        if (MAXIMUM_CACHEABLE_SIZE < 2 * size) {
+          log.info('The object is heavier than the maximum allowed. Not caching.');
+        } else {
+          log.info('Caching...');
+          const payload = throttledCache.get(endpoint);
+          if (payload) {
+            save(endpoint, payload);
+          }
+        }
+      }
+      throttledCache.delete(endpoint);
+    });
+    next();
   },
 
   /*
@@ -133,12 +187,65 @@ module.exports = {
   },
 
   /*
+   * Devuelve el ranking de endpoints registrados en la caché actualmente. Los
+   * más populares y más grandes primero.
+   */
+  endpoints() {
+    const ranking_ = ranking().reverse();
+    const rank = [];
+    for (let i = 0; i < ranking_.length; ++i) {
+      rank[i] = {
+        endpoint: ranking_[i][0],
+        hits: ranking_[i][1].hits,
+        size: ranking_[i][1].size
+      };
+    }
+    return rank;
+  },
+
+  /*
    * Vacía la cache.
    */
   invalidate() {
     log.info('Invalidating cache...');
+    throttledCache.clear();
     cache.clear();
     sizeInBytes = 0;
     log.info('The cache is empty now. Waiting for queries...');
+  },
+
+  /*
+   * Devuelve el tamaño de la caché en bytes.
+   */
+  size() {
+    return sizeInBytes;
+  },
+
+  /*
+   * Aplica un wrapper al controlador pero con regulación, a diferencia del
+   * método 'cached', con el objeto de limitar el tamaño máximo de los objetos
+   * almacenados en la caché.
+   */
+  throttledCached(controller) {
+    return (req, res) => {
+      if (isEnabled()) {
+        const endpoint = deterministic(req);
+        if (cache.has(endpoint)) {
+          const record = cache.get(endpoint);
+          ++record.hits;
+          log.info(`Cache hit! Total hits for this endpoint: ${record.hits}.`);
+          return res.send(record.payload);
+        }
+        log.info('Cache miss!');
+        const cacher = Object.create(null);
+        cacher.send = payload => {
+          throttledCache.set(endpoint, payload);
+          return res.send(payload);
+        };
+        res.set(CACHE_HEADER, endpoint);
+        return controller(req, cacher);
+      }
+      return controller(req, res);
+    };
   }
 };

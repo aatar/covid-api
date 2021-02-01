@@ -2,12 +2,14 @@
  * Módulo de persistencia.
  */
 
+/* eslint-disable max-classes-per-file */
 /* eslint-disable max-len */
+/* eslint-disable no-async-promise-executor */
 /* eslint-disable no-mixed-operators */
 /* eslint-disable prettier/prettier */
-/* eslint-disable max-classes-per-file */
 
 const config = require('../../config'),
+  cache = require('../cache'),
   csv = require('csvtojson'),
   fs = require('fs'),
   http = require('http'),
@@ -21,6 +23,7 @@ const { CovidCases } = require('../models');
 /*
  * Constantes.
  */
+const CACHE_COOLDOWN = 1000 * config.app.cacheCooldown;
 const CONTENT_LENGTH = 'content-length';
 const FINISH_EVENT = 'finish';
 const HTTPS_SCHEMA = 'https:';
@@ -145,9 +148,13 @@ module.exports = {
    * Almacena un dataset en la base de datos.
    */
   store(dataset) {
-    return new Promise((resolve_, reject_) => {
+    return new Promise(async (resolve_, reject_) => {
+      cache.disable();
+      await new Promise(resolve => setTimeout(resolve, CACHE_COOLDOWN));
+      cache.invalidate();
       const resolve = x => {
         config.global.updating = false;
+        cache.enable();
         resolve_(x);
       };
       const reject = x => {
@@ -166,8 +173,8 @@ module.exports = {
             json.edad_anios_meses = json.edad_años_meses;
             delete json.edad_años_meses;
             buffer.push(json);
+            config.global.updating = true;
             if (buffer.length === THRESHOLD) {
-              config.global.updating = true;
               await CovidCases.bulkCreate(buffer, { updateOnDuplicate: UPDATE_SCHEMA })
                 .then(() => {
                   uploaded += buffer.length;

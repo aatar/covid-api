@@ -44,11 +44,13 @@ const baseConfig = {
     password: process.env.DB_PASSWORD || 'postgres'
   },
   app: {
+    cacheCooldown: parseInt(process.env.CACHE_COOLDOWN) || 10,
     cacheSize: parseInt(process.env.CACHE_SIZE) || 128,
     covidDataset: process.env.COVID_DATASET || 'http://localhost:8081/dataset.csv',
     cronSchema: process.env.CRON_SCHEMA || '0 0 20 * * *',
     fireOnDeploy: process.env.FIRE_ON_DEPLOY === 'true',
     localDataset: process.env.LOCAL_DATASET || 'dataset_.csv',
+    maximumCacheableSize: parseInt(process.env.MAXIMUM_CACHEABLE_SIZE) || 32,
     retryDownload: parseInt(process.env.RETRY_DOWNLOAD) || 10 * 60,
     shrinkingFactor: parseFloat(process.env.SHRINKING_FACTOR) || 0.5,
     updateTarget: parseInt(process.env.UPDATE_TARGET) || 1e5,
