@@ -56,6 +56,10 @@ const deterministic = request => {
     }
   }
   const query = JSON.stringify(properties.sort());
+  if (request.path.lastIndexOf('/') + 1 === request.path.length) {
+    const pathWithoutSlash = request.path.substring(0, request.path.lastIndexOf('/'));
+    return `${pathWithoutSlash}?${query}`;
+  }
   return `${request.path}?${query}`;
 };
 
