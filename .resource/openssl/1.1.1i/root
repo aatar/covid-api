@@ -1,0 +1,56 @@
+#
+# OpenSSL v1.1.1i (08/12/2020) Configuration
+#
+# @see [https://www.openssl.org/docs/man1.1.1/man1/ca.html]
+# @see [https://www.openssl.org/docs/man1.1.1/man5/config.html]
+# @see [https://www.openssl.org/docs/man1.1.1/man5/x509v3_config.html]
+#
+
+[ca]
+default_ca = CERTIFICATION_AUTHORITY
+
+[req]
+prompt = no
+string_mask = utf8only
+utf8 = yes
+
+attributes = ATTRIBUTES
+distinguished_name = DISTINGUISHED_NAME
+x509_extensions = X509_EXTENSIONS
+
+[CERTIFICATION_AUTHORITY]
+PKI_PATH = ../../..
+
+crlnumber = ${PKI_PATH}/crl/db/serial
+database = ${PKI_PATH}/ca/db/index
+new_certs_dir = ${PKI_PATH}/ca/certificates
+serial = ${PKI_PATH}/ca/db/serial
+
+cert_opt = ca_default
+copy_extensions = copy
+email_in_dn = no
+name_opt = ca_default
+unique_subject = yes
+
+attributes = ATTRIBUTES
+policy = DISTINGUISHED_NAME
+x509_extensions = X509_EXTENSIONS
+
+[ATTRIBUTES]
+
+[DISTINGUISHED_NAME]
+commonName = "SARS-CoV-2 API Certification Authority"
+countryName = "AR"
+localityName = "Puerto Madero"
+organizationName = "ITBA"
+organizationalUnitName = "Department of Informatic Engineering"
+stateOrProvinceName = "Ciudad Autónoma de Buenos Aires"
+
+[X509_EXTENSIONS]
+authorityInfoAccess = OCSP;URI:https://ocsp.pki.itba.edu.ar/, caIssuers;URI:https://ca.pki.itba.edu.ar/
+authorityKeyIdentifier = keyid, issuer
+basicConstraints = critical, CA:TRUE, pathlen:0
+crlDistributionPoints = URI:https://crl.pki.itba.edu.ar/
+extendedKeyUsage = critical, clientAuth, codeSigning, emailProtection, OCSPSigning, serverAuth, timeStamping
+keyUsage = critical, cRLSign, dataEncipherment, digitalSignature, keyAgreement, keyCertSign, keyEncipherment, nonRepudiation
+subjectKeyIdentifier = hash

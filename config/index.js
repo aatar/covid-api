@@ -29,7 +29,10 @@ const baseConfig = {
   environment: process.env.NODE_ENV || 'development',
   server: {
     host: process.env.HOST || 'localhost',
-    port: parseInt(process.env.PORT) || 8080,
+    port: parseInt(process.env.PORT) || 8443,
+    certificate: process.env.CERTIFICATE || 'certificate.pem',
+    privateKey: process.env.PRIVATE_KEY || 'private-key.pem',
+    privateKeyPassphrase: process.env.PRIVATE_KEY_PASSPHRASE || 'private-key-passphrase',
     http: {
       bodySizeLimit: parseInt(process.env.BODY_SIZE_LIMIT) || 1024 * 1024 * 10,
       paginateLimit: parseInt(process.env.PAGINATE_LIMIT) || 3,
@@ -47,7 +50,7 @@ const baseConfig = {
     cacheCooldown: parseInt(process.env.CACHE_COOLDOWN) || 10,
     cacheSize: parseInt(process.env.CACHE_SIZE) || 128,
     covidDataset: process.env.COVID_DATASET || 'http://localhost:8081/dataset.csv',
-    cronSchema: process.env.CRON_SCHEMA || '0 0 20 * * *',
+    cronSchema: process.env.CRON_SCHEMA || '0 0 0 * * *',
     fireOnDeploy: process.env.FIRE_ON_DEPLOY === 'true',
     localDataset: process.env.LOCAL_DATASET || 'dataset_.csv',
     maximumCacheableSize: parseInt(process.env.MAXIMUM_CACHEABLE_SIZE) || 32,

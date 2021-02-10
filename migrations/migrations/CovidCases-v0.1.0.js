@@ -110,45 +110,107 @@ module.exports = {
         }
       })
       .then(() =>
-        queryInterface.addIndex('CovidCases', ['id_evento_caso', 'clasificacion_resumen'], {
-          name: 'id_clasificacion_index',
-          unique: true
-        })
+        queryInterface.addIndex(
+          'CovidCases',
+          [
+            'fallecido',
+            'clasificacion_resumen',
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura'
+          ],
+          {
+            name: 'CountIndex',
+            unique: false
+          }
+        )
       )
       .then(() =>
-        queryInterface.addIndex('CovidCases', ['id_evento_caso', 'fallecido'], {
-          name: 'id_fallecido_index',
-          unique: true
-        })
+        queryInterface.addIndex(
+          'CovidCases',
+          [
+            'carga_provincia_nombre',
+            'fallecido',
+            'clasificacion_resumen',
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura'
+          ],
+          {
+            name: 'ProvinceCountIndex',
+            unique: false
+          }
+        )
       )
       .then(() =>
-        queryInterface.addIndex('CovidCases', ['id_evento_caso', 'carga_provincia_nombre'], {
-          name: 'id_provincia_index',
-          unique: true
-        })
+        queryInterface.addIndex(
+          'CovidCases',
+          ['carga_provincia_nombre', 'fallecido', 'clasificacion_resumen', 'id_evento_caso'],
+          {
+            name: 'ProvinceStatsIndex',
+            unique: false
+          }
+        )
       )
       .then(() =>
-        queryInterface.addIndex('CovidCases', ['id_evento_caso', 'fecha_apertura'], {
-          name: 'id_fecha_index',
-          unique: true
+        queryInterface.addIndex(
+          'CovidCases',
+          [
+            'carga_provincia_nombre',
+            'fallecido',
+            'clasificacion_resumen',
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura',
+            'id_evento_caso'
+          ],
+          {
+            name: 'ProvinceSummaryIndex',
+            unique: false
+          }
+        )
+      )
+      .then(() =>
+        queryInterface.addIndex('CovidCases', ['fecha_apertura', 'id_evento_caso'], {
+          name: 'RawSummaryIndex',
+          unique: false
         })
       )
       .then(() =>
         queryInterface.addIndex(
           'CovidCases',
-          ['id_evento_caso', 'cuidado_intensivo', 'asistencia_respiratoria_mecanica'],
+          ['fallecido', 'clasificacion_resumen', 'carga_provincia_nombre', 'id_evento_caso'],
           {
-            name: 'id_icu_asistencia_index',
-            unique: true
+            name: 'StatsIndex',
+            unique: false
+          }
+        )
+      )
+      .then(() =>
+        queryInterface.addIndex(
+          'CovidCases',
+          [
+            'fallecido',
+            'clasificacion_resumen',
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura',
+            'id_evento_caso'
+          ],
+          {
+            name: 'SummaryIndex',
+            unique: false
           }
         )
       ),
   down: queryInterface =>
     queryInterface
       .dropTable('CovidCases')
-      .then(() => queryInterface.removeIndex('CovidCases', 'id_clasificacion_index'))
-      .then(() => queryInterface.removeIndex('CovidCases', 'id_fallecido_index'))
-      .then(() => queryInterface.removeIndex('CovidCases', 'id_provincia_index'))
-      .then(() => queryInterface.removeIndex('CovidCases', 'id_fecha_index'))
-      .then(() => queryInterface.removeIndex('CovidCases', 'id_icu_asistencia_index'))
+      .then(() => queryInterface.removeIndex('CovidCases', 'CountIndex'))
+      .then(() => queryInterface.removeIndex('CovidCases', 'ProvinceCountIndex'))
+      .then(() => queryInterface.removeIndex('CovidCases', 'ProvinceStatsIndex'))
+      .then(() => queryInterface.removeIndex('CovidCases', 'ProvinceSummaryIndex'))
+      .then(() => queryInterface.removeIndex('CovidCases', 'RawSummaryIndex'))
+      .then(() => queryInterface.removeIndex('CovidCases', 'StatsIndex'))
+      .then(() => queryInterface.removeIndex('CovidCases', 'SummaryIndex'))
 };

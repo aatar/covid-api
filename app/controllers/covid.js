@@ -19,14 +19,9 @@ const { CovidCases } = require('../models'),
   { PROVINCES, POBLATION } = require('./constants'),
   Sequelize = require('sequelize');
 
-exports.getCases = async (req, res) => {
-  const cases = await CovidCases.findAll();
-  return res.send(cases);
-};
-
 exports.count = async (req, res) => {
   const { icu, dead, respirator, classification, from, to } = req.query;
-  const count = await CovidCases.findOne({
+  const count = await CovidCases.count({
     where: {
       cuidado_intensivo: icu ? (icu === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
       fallecido: dead ? (dead === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
@@ -46,10 +41,9 @@ exports.count = async (req, res) => {
         [Op.gte]: from ? from : '2000-01-01',
         [Op.lte]: to ? to : '2100-01-01'
       }
-    },
-    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'count']]
+    }
   });
-  return res.send(count);
+  return res.send({ count });
 };
 
 exports.provinceCases = async (req, res) => {
@@ -86,7 +80,7 @@ exports.provinceCount = async (req, res) => {
   const { icu, dead, respirator, classification, from, to } = req.query;
   const { slug } = req.params;
   const { province } = PROVINCES.filter(p => p.slug === slug)[0];
-  const count = await CovidCases.findOne({
+  const count = await CovidCases.count({
     where: {
       carga_provincia_nombre: { [Op.eq]: province },
       cuidado_intensivo: icu ? (icu === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
@@ -107,10 +101,9 @@ exports.provinceCount = async (req, res) => {
         [Op.gte]: from ? from : '2000-01-01',
         [Op.lte]: to ? to : '2100-01-01'
       }
-    },
-    attributes: [[Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'count']]
+    }
   });
-  return res.send(count);
+  return res.send({ count });
 };
 
 exports.provinceStats = async (req, res) => {
@@ -374,34 +367,49 @@ exports.stats = async (req, res) => {
 
 exports.summary = async (req, res) => {
   const { icu, dead, respirator, classification, from, to } = req.query;
-  const dateCases = await CovidCases.findAll({
-    where: {
-      cuidado_intensivo: icu ? (icu === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
-      fallecido: dead ? (dead === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
-      asistencia_respiratoria_mecanica: respirator
-        ? respirator === 'true'
-          ? { [Op.eq]: 'SI' }
-          : { [Op.eq]: 'NO' }
-        : { [Op.like]: '%' },
-      clasificacion_resumen: classification
-        ? classification === 'confirmed'
-          ? { [Op.eq]: 'Confirmado' }
-          : classification === 'suspect'
-          ? { [Op.eq]: 'Sospechoso' }
-          : { [Op.eq]: 'Descartado' }
-        : { [Op.like]: '%' },
-      fecha_apertura: {
-        [Op.gte]: from ? from : '2000-01-01',
-        [Op.lte]: to ? to : '2100-01-01'
-      }
-    },
-    attributes: [
-      ['fecha_apertura', 'fecha'],
-      [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
-    ],
-    group: 'fecha_apertura',
-    order: [['fecha_apertura', 'ASC']]
-  });
+  const rawQuery = icu || dead || respirator || classification || from || to || true;
+  const dateCases =
+    rawQuery === true
+      ? await CovidCases.findAll({
+          attributes: [
+            ['fecha_apertura', 'fecha'],
+            [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
+          ],
+          group: 'fecha_apertura',
+          order: [['fecha_apertura', 'ASC']]
+        })
+      : await CovidCases.findAll({
+          where: {
+            cuidado_intensivo: icu
+              ? icu === 'true'
+                ? { [Op.eq]: 'SI' }
+                : { [Op.eq]: 'NO' }
+              : { [Op.like]: '%' },
+            fallecido: dead ? (dead === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },
+            asistencia_respiratoria_mecanica: respirator
+              ? respirator === 'true'
+                ? { [Op.eq]: 'SI' }
+                : { [Op.eq]: 'NO' }
+              : { [Op.like]: '%' },
+            clasificacion_resumen: classification
+              ? classification === 'confirmed'
+                ? { [Op.eq]: 'Confirmado' }
+                : classification === 'suspect'
+                ? { [Op.eq]: 'Sospechoso' }
+                : { [Op.eq]: 'Descartado' }
+              : { [Op.like]: '%' },
+            fecha_apertura: {
+              [Op.gte]: from ? from : '2000-01-01',
+              [Op.lte]: to ? to : '2100-01-01'
+            }
+          },
+          attributes: [
+            ['fecha_apertura', 'fecha'],
+            [Sequelize.fn('COUNT', Sequelize.col('id_evento_caso')), 'cantidad']
+          ],
+          group: 'fecha_apertura',
+          order: [['fecha_apertura', 'ASC']]
+        });
   const dateDeaths = await CovidCases.findAll({
     where: {
       cuidado_intensivo: icu ? (icu === 'true' ? { [Op.eq]: 'SI' } : { [Op.eq]: 'NO' }) : { [Op.like]: '%' },

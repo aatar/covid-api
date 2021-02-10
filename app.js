@@ -36,7 +36,9 @@ app.use(expressRequestIdMiddleware);
 app.use(cors());
 app.use(paginate.middleware(httpConfig.paginateLimit, httpConfig.paginateMaxLimit));
 app.use((req, res, next) => {
-  res.type(MIME_TYPE);
+  if (!req.path.startsWith(`/api/v${project.version}/swagger`)) {
+    res.type(MIME_TYPE);
+  }
   next();
 });
 app.use(cacheTrap);

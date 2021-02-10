@@ -29,6 +29,7 @@
 		"rss-parser": "^3.7.6",
 		"schema-validator": "^3.3.1",
 		"sequelize": "^5.22.3",
+		"swagger-ui-express": "^4.1.6",
 		"umzug": "^2.3.0"
 	},
 	"devDependencies": {

@@ -50,3 +50,9 @@ node_modules
 
 # CSV databases
 *.csv
+
+# Certificates and private-keys
+*.pem
+
+# Passphrases
+private-key-passphrase

@@ -1,0 +1,856 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SARS-CoV-2 API",
+    "description": "An API for querying SARS-CoV-2 cases in Argentina.\n\nThis API is an improvement of [another COVID-19 API](https://covid19api.it.itba.edu.ar/api/v1/swagger/). It has the same endpoints, but works over a database on-disk instead of memory, so it supports larger datasets (of several _GiB_). Additionally, we provide a customizable cache for accelerating queries, without the need to access the database.",
+    "termsOfService": "",
+    "contact": {
+      "name": "COVID API Support",
+      "url": "https://github.com/aatar/covid-api/issues",
+      "email": "covid-api@itba.edu.ar"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/aatar/covid-api/blob/main/LICENSE.md"
+    },
+    "version": "0.1.0"
+  },
+  "security": [],
+  "servers": [
+    {
+      "url": "https://{host}:{port}/api/v0.1.0",
+      "description": "Production Server v0.1.0",
+      "variables": {
+        "host": {
+          "enum": [
+            "covid-api.itba.edu.ar",
+            "localhost"
+          ],
+          "default": "covid-api.itba.edu.ar",
+          "description": "The host of the application."
+        },
+        "port": {
+          "enum": [
+            "443",
+            "8443"
+          ],
+          "default": "443",
+          "description": "The port of the application, HTTPS compatible."
+        }
+      }
+    }
+  ],
+  "externalDocs": {
+    "description": "Go to the GitHub repository.",
+    "url": "https://github.com/aatar/covid-api"
+  },
+  "components": {
+    "parameters": {
+      "Classification": {
+        "name": "classification",
+        "in": "query",
+        "description": "The classification status of the cases.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "suspect",
+            "rejected"
+          ]
+        }
+      },
+      "Dead": {
+        "name": "dead",
+        "in": "query",
+        "description": "Indicates that the cases involve dead patients.",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "From": {
+        "name": "from",
+        "in": "query",
+        "description": "The date from where to begin the search of cases.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date",
+          "pattern": "\\d{4}-\\d{2}-\\d{2}"
+        }
+      },
+      "ICU": {
+        "name": "icu",
+        "in": "query",
+        "description": "Indicates that the cases involve patients that were under an Intensive Care Unit (ICU).",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "Slug": {
+        "name": "slug",
+        "in": "path",
+        "description": "The 2-digits code of the province.",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "\\d{2}"
+        }
+      },
+      "To": {
+        "name": "to",
+        "in": "query",
+        "description": "The date to reach, when searching for cases.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date",
+          "pattern": "\\d{4}-\\d{2}-\\d{2}"
+        }
+      },
+      "Ventilator": {
+        "name": "respirator",
+        "in": "query",
+        "description": "Indicates that the cases involve patients that used a Ventilator Unit (VU).",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    "responses": {
+      "CaseArray": {
+        "description": "An array of full-featured cases.",
+        "content": {
+          "application/vnd.covid-api-v0.1.0+json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Case"
+              }
+            }
+          }
+        }
+      },
+      "Count": {
+        "description": "An object that only has a count of cases.",
+        "content": {
+          "application/vnd.covid-api-v0.1.0+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Count"
+            }
+          }
+        }
+      },
+      "LastUpdate": {
+        "description": "An object that only has a date.",
+        "content": {
+          "application/vnd.covid-api-v0.1.0+json": {
+            "schema": {
+              "$ref": "#/components/schemas/LastUpdate"
+            }
+          }
+        }
+      },
+      "ProvinceArray": {
+        "description": "An array of provinces.",
+        "content": {
+          "application/vnd.covid-api-v0.1.0+json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Province"
+              }
+            }
+          }
+        }
+      },
+      "Stats": {
+        "description": "A set of statistics about a province.",
+        "content": {
+          "application/vnd.covid-api-v0.1.0+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Stats"
+            }
+          }
+        }
+      },
+      "StatsArray": {
+        "description": "An array of sets of statistics about provinces.",
+        "content": {
+          "application/vnd.covid-api-v0.1.0+json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Stats"
+              }
+            }
+          }
+        }
+      },
+      "SummaryArray": {
+        "description": "An array of daily summarizations.",
+        "content": {
+          "application/vnd.covid-api-v0.1.0+json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Summary"
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Case": {
+        "description": "A full-featured SARS-CoV-2 case.",
+        "type": "object",
+        "properties": {
+          "id_evento_caso": {
+            "description": "A unique identifier of the case.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "sexo": {
+            "description": "The sex of the patient.",
+            "type": "string",
+            "enum": [
+              "M",
+              "F",
+              "NR"
+            ]
+          },
+          "edad": {
+            "description": "The age of the patient in years or months.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "edad_anios_meses": {
+            "description": "The unit of the age.",
+            "type": "string",
+            "enum": [
+              "Años",
+              "Meses"
+            ]
+          },
+          "residencia_pais_nombre": {
+            "description": "Residence country.",
+            "type": "string"
+          },
+          "residencia_provincia_nombre": {
+            "description": "Residence province.",
+            "type": "string"
+          },
+          "residencia_departamento_nombre": {
+            "description": "Residence department.",
+            "type": "string"
+          },
+          "carga_provincia_nombre": {
+            "description": "Province where the case was loaded.",
+            "type": "string"
+          },
+          "fecha_inicio_sintomas": {
+            "description": "Start date of symptoms.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          },
+          "fecha_apertura": {
+            "description": "Date when the case was loaded.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          },
+          "sepi_apertura": {
+            "description": "Epidemiological Week (SEPI, in spanish) when the case was loaded.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "fecha_internacion": {
+            "description": "Hospitalization date.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          },
+          "cuidado_intensivo": {
+            "description": "Indicates use of ICU (Intensive Care Unit).",
+            "type": "string",
+            "enum": [
+              "SI",
+              "NO"
+            ]
+          },
+          "fecha_cui_intensivo": {
+            "description": "Date of ICU treatment.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          },
+          "fallecido": {
+            "description": "Indicates a dead patient.",
+            "type": "string",
+            "enum": [
+              "SI",
+              "NO"
+            ]
+          },
+          "fecha_fallecimiento": {
+            "description": "Date of death.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          },
+          "asistencia_respiratoria_mecanica": {
+            "description": "Indicates use of Ventilator Unit (VU).",
+            "type": "string",
+            "enum": [
+              "SI",
+              "NO"
+            ]
+          },
+          "carga_provincia_id": {
+            "description": "Identifier of the province where the case was loaded.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "origen_financiamiento": {
+            "description": "Type of financing (e.g., private, public, etc.).",
+            "type": "string"
+          },
+          "clasificacion": {
+            "description": "Partial classification of the case.",
+            "type": "string"
+          },
+          "clasificacion_resumen": {
+            "description": "Final classification of the case.",
+            "type": "string",
+            "enum": [
+              "Confirmado",
+              "Descartado",
+              "Sin Clasificar",
+              "Sospechoso"
+            ]
+          },
+          "residencia_provincia_id": {
+            "description": "Identifier of the patient's residence province.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "fecha_diagnostico": {
+            "description": "Date of SARS-CoV-2 diagnostic.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          },
+          "residencia_departamento_id": {
+            "description": "Identifier of the patient's residence department.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "ultima_actualizacion": {
+            "description": "Date of last update of this case.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          }
+        },
+        "example": {
+          "id_evento_caso": 7280093,
+          "sexo": "M",
+          "edad": 71,
+          "edad_anios_meses": "Años",
+          "residencia_pais_nombre": "Argentina",
+          "residencia_provincia_nombre": "CABA",
+          "residencia_departamento_nombre": "SIN ESPECIFICAR",
+          "carga_provincia_nombre": "CABA",
+          "fecha_inicio_sintomas": "",
+          "fecha_apertura": "2021-02-04",
+          "sepi_apertura": 5,
+          "fecha_internacion": "2020-11-02",
+          "cuidado_intensivo": "SI",
+          "fecha_cui_intensivo": "2021-02-02",
+          "fallecido": "SI",
+          "fecha_fallecimiento": "2021-02-04",
+          "asistencia_respiratoria_mecanica": "SI",
+          "carga_provincia_id": 2,
+          "origen_financiamiento": "Privado",
+          "clasificacion": "Caso confirmado por laboratorio - Fallecido",
+          "clasificacion_resumen": "Confirmado",
+          "residencia_provincia_id": 2,
+          "fecha_diagnostico": "2021-02-04",
+          "residencia_departamento_id": 0,
+          "ultima_actualizacion": "2021-02-06"
+        }
+      },
+      "Count": {
+        "description": "An object that only has a count of cases.",
+        "type": "object",
+        "properties": {
+          "count": {
+            "description": "The count of cases.",
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "example": {
+          "count": 1651026
+        }
+      },
+      "LastUpdate": {
+        "description": "An object that only has a date.",
+        "type": "object",
+        "properties": {
+          "last_update": {
+            "description": "The last update's date of this dataset.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          }
+        },
+        "example": {
+          "last_update": "2021-02-09"
+        }
+      },
+      "Province": {
+        "description": "A province an its 2-digits code.",
+        "type": "object",
+        "properties": {
+          "slug": {
+            "description": "A 2-digits unique identifier of the province.",
+            "type": "string",
+            "pattern": "\\d{2}"
+          },
+          "province": {
+            "description": "The name of the province.",
+            "type": "string"
+          }
+        },
+        "example": {
+          "slug": "02",
+          "province": "CABA"
+        }
+      },
+      "Stats": {
+        "description": "A set of statistics about a province.",
+        "type": "object",
+        "properties": {
+          "provincia": {
+            "description": "The name of the province.",
+            "type": "string"
+          },
+          "población": {
+            "description": "The estimated population of the province.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes_por_millón": {
+            "description": "The deaths per million of people.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes_cada_cien_mil": {
+            "description": "The deaths per hundred thousand of people.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "casos_por_millón": {
+            "description": "The positive cases per million of people.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "casos_cada_cien_mil": {
+            "description": "The positive cases per hundred thousand of people.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "letalidad": {
+            "description": "The lethality, that is, proportion of deaths over confirmed cases.",
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "example": {
+          "provincia": "Chaco",
+          "población": 1204541,
+          "muertes_por_millón": 672,
+          "muertes_cada_cien_mil": 67,
+          "casos_por_millón": 26082,
+          "casos_cada_cien_mil": 2608,
+          "letalidad": 0.0258
+        }
+      },
+      "Summary": {
+        "description": "A daily summarization.",
+        "type": "object",
+        "properties": {
+          "index": {
+            "description": "A number representing the current date of the summary, but starting at 0 (zero).",
+            "type": "integer",
+            "format": "int32"
+          },
+          "fecha": {
+            "description": "The date of this summary.",
+            "type": "string",
+            "format": "date",
+            "pattern": "\\d{4}-\\d{2}-\\d{2}"
+          },
+          "casos": {
+            "description": "The number of confirmed cases of this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes": {
+            "description": "The number of confirmed deaths of this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes_acum": {
+            "description": "The accummulated confirmed deaths until this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "casos_acum": {
+            "description": "The accummulated confirmed cases until this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes_por_millón": {
+            "description": "The confirmed deaths per million of this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes_acum_por_millón": {
+            "description": "The accummulated confirmed deaths per million until this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes_cada_cien_mil": {
+            "description": "The confirmed deaths per hundred thousand of this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "muertes_acum_cada_cien_mil": {
+            "description": "The accumulated deaths per hundred thousand until this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "casos_por_millón": {
+            "description": "The confirmed cases per million of this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "casos_acum_por_millón": {
+            "description": "The accummulated confirmed cases per million until this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "casos_cada_cien_mil": {
+            "description": "The confirmed cases per hundred thousand of this day.",
+            "type": "integer",
+            "format": "int32"
+          },
+          "casos_acum_cada_cien_mil": {
+            "description": "The accummulated confirmed cases per hundred thousand until this day.",
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "example": {
+          "index": 0,
+          "fecha": "2020-03-16",
+          "casos": 1,
+          "muertes": 1,
+          "muertes_acum": 1,
+          "casos_acum": 1,
+          "muertes_por_millón": 1,
+          "muertes_acum_por_millón": 1,
+          "muertes_cada_cien_mil": 0,
+          "muertes_acum_cada_cien_mil": 0,
+          "casos_por_millón": 1,
+          "casos_acum_por_millón": 1,
+          "casos_cada_cien_mil": 0,
+          "casos_acum_cada_cien_mil": 0
+        }
+      }
+    }
+  },
+  "paths": {
+    "/count": {
+      "get": {
+        "summary": "How many cases are there?",
+        "description": "Returns the amount of cases in Argentina after applying the filters (optional).",
+        "operationId": "countCases",
+        "tags": [
+          "counter"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ICU"
+          },
+          {
+            "$ref": "#/components/parameters/Dead"
+          },
+          {
+            "$ref": "#/components/parameters/Ventilator"
+          },
+          {
+            "$ref": "#/components/parameters/Classification"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Count"
+          }
+        }
+      }
+    },
+    "/last_update": {
+      "get": {
+        "summary": "How old is the dataset?",
+        "description": "The date of the current dataset loaded in the server.",
+        "operationId": "lastUpdate",
+        "tags": [
+          "state"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LastUpdate"
+          }
+        }
+      }
+    },
+    "/province/{slug}": {
+      "get": {
+        "summary": "What cases are there?",
+        "description": "Gets the cases associated with this 2-digits code's province (with all the features).",
+        "operationId": "provinceCases",
+        "tags": [
+          "bulk"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "$ref": "#/components/parameters/ICU"
+          },
+          {
+            "$ref": "#/components/parameters/Dead"
+          },
+          {
+            "$ref": "#/components/parameters/Ventilator"
+          },
+          {
+            "$ref": "#/components/parameters/Classification"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/CaseArray"
+          }
+        }
+      }
+    },
+    "/province/{slug}/count": {
+      "get": {
+        "summary": "How many cases are in this province?",
+        "description": "Returns amount of cases applying an optional filter, but in a specific province.",
+        "operationId": "countProvinceCases",
+        "tags": [
+          "counter"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "$ref": "#/components/parameters/ICU"
+          },
+          {
+            "$ref": "#/components/parameters/Dead"
+          },
+          {
+            "$ref": "#/components/parameters/Ventilator"
+          },
+          {
+            "$ref": "#/components/parameters/Classification"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Count"
+          }
+        }
+      }
+    },
+    "/province/{slug}/stats": {
+      "get": {
+        "summary": "What are the stats of this province?",
+        "description": "Computes certain statistics about a province.",
+        "operationId": "provinceStats",
+        "tags": [
+          "report"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Stats"
+          }
+        }
+      }
+    },
+    "/province/{slug}/summary": {
+      "get": {
+        "summary": "What are the daily summaries for this province?",
+        "description": "Gets the summaries of a period of time (with an optional filter), day-by-day of a province.",
+        "operationId": "provinceSummary",
+        "tags": [
+          "report"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Slug"
+          },
+          {
+            "$ref": "#/components/parameters/ICU"
+          },
+          {
+            "$ref": "#/components/parameters/Dead"
+          },
+          {
+            "$ref": "#/components/parameters/Ventilator"
+          },
+          {
+            "$ref": "#/components/parameters/Classification"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SummaryArray"
+          }
+        }
+      }
+    },
+    "/provinces": {
+      "get": {
+        "summary": "What provinces are there?",
+        "description": "Gets all the provinces and their 2-digit codes (a.k.a. slug).",
+        "operationId": "provinces",
+        "tags": [
+          "constants"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ProvinceArray"
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "summary": "What are the stats of Argentina?",
+        "description": "Computes certain statistics about the entire Argentina (with its provinces).",
+        "operationId": "stats",
+        "tags": [
+          "report"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/StatsArray"
+          }
+        }
+      }
+    },
+    "/summary": {
+      "get": {
+        "summary": "What is the report for Argentina?",
+        "description": "Gets the summaries of a period of time (with an optional filter), day-by-day of the whole Argentina.",
+        "operationId": "summary",
+        "tags": [
+          "report"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ICU"
+          },
+          {
+            "$ref": "#/components/parameters/Dead"
+          },
+          {
+            "$ref": "#/components/parameters/Ventilator"
+          },
+          {
+            "$ref": "#/components/parameters/Classification"
+          },
+          {
+            "$ref": "#/components/parameters/From"
+          },
+          {
+            "$ref": "#/components/parameters/To"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SummaryArray"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "bulk",
+      "description": "Endpoints that possible retrieves big amounts of data."
+    },
+    {
+      "name": "constants",
+      "description": "Endpoints that returns constant values used in the application."
+    },
+    {
+      "name": "counter",
+      "description": "Endpoints that counts cases of certain types."
+    },
+    {
+      "name": "report",
+      "description": "Endpoints that summarizes data for simple parsing and graphing."
+    },
+    {
+      "name": "state",
+      "description": "Endpoints that returns properties of the dataset."
+    }
+  ]
+}

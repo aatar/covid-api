@@ -114,62 +114,66 @@ module.exports = (sequelize, Sequelize) => {
       timestamps: false,
       indexes: [
         {
-          name: 'id_clasificacion_index',
-          unique: true,
+          name: 'CountIndex',
+          unique: false,
           fields: [
-            {
-              attribute: 'id_evento_caso',
-              order: 'ASC'
-            },
-            'clasificacion_resumen'
-          ]
-        },
-        {
-          name: 'id_fallecido_index',
-          unique: true,
-          fields: [
-            {
-              attribute: 'id_evento_caso',
-              order: 'ASC'
-            },
-            'fallecido'
-          ]
-        },
-        {
-          name: 'id_provincia_index',
-          unique: true,
-          fields: [
-            {
-              attribute: 'id_evento_caso',
-              order: 'ASC'
-            },
-            'carga_provincia_nombre'
-          ]
-        },
-        {
-          name: 'id_fecha_index',
-          unique: true,
-          fields: [
-            {
-              attribute: 'id_evento_caso',
-              order: 'ASC'
-            },
-            {
-              attribute: 'fecha_apertura',
-              order: 'ASC'
-            }
-          ]
-        },
-        {
-          name: 'id_icu_asistencia_index',
-          unique: true,
-          fields: [
-            {
-              attribute: 'id_evento_caso',
-              order: 'ASC'
-            },
+            'fallecido',
+            'clasificacion_resumen',
             'cuidado_intensivo',
-            'asistencia_respiratoria_mecanica'
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura'
+          ]
+        },
+        {
+          name: 'ProvinceCountIndex',
+          unique: false,
+          fields: [
+            'carga_provincia_nombre',
+            'fallecido',
+            'clasificacion_resumen',
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura'
+          ]
+        },
+        {
+          name: 'ProvinceStatsIndex',
+          unique: false,
+          fields: ['carga_provincia_nombre', 'fallecido', 'clasificacion_resumen', 'id_evento_caso']
+        },
+        {
+          name: 'ProvinceSummaryIndex',
+          unique: false,
+          fields: [
+            'carga_provincia_nombre',
+            'fallecido',
+            'clasificacion_resumen',
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura',
+            'id_evento_caso'
+          ]
+        },
+        {
+          name: 'RawSummaryIndex',
+          unique: false,
+          fields: ['fecha_apertura', 'id_evento_caso']
+        },
+        {
+          name: 'StatsIndex',
+          unique: false,
+          fields: ['fallecido', 'clasificacion_resumen', 'carga_provincia_nombre', 'id_evento_caso']
+        },
+        {
+          name: 'SummaryIndex',
+          unique: false,
+          fields: [
+            'fallecido',
+            'clasificacion_resumen',
+            'cuidado_intensivo',
+            'asistencia_respiratoria_mecanica',
+            'fecha_apertura',
+            'id_evento_caso'
           ]
         }
       ]

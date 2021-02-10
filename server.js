@@ -4,12 +4,15 @@
 
 const app = require('./app'),
   config = require('./config'),
+  fs = require('fs'),
+  https = require('https'),
   log = require('./app/logger'),
   migrationsManager = require('./migrations');
 
-const { host, port } = config.server;
+const { host, port, certificate, privateKey, privateKeyPassphrase } = config.server;
 const { covidDataset, cronSchema, fireOnDeploy, localDataset, retryDownload } = config.app;
 const { download, exception, schedule, store } = require('./app/persistence');
+const ENCODING = 'utf8';
 
 /*
  * La tarea recurrente encargada de descargar el nuevo dataset de casos del
@@ -43,8 +46,17 @@ const covidTask = () => {
 Promise.resolve()
   .then(() => migrationsManager.check())
   .then(() => {
-    app.listen(port, host);
-    log.info(`Listening on http://${host}:${port}/.`);
+    https
+      .createServer(
+        {
+          cert: fs.readFileSync(certificate, ENCODING),
+          key: fs.readFileSync(privateKey, ENCODING),
+          passphrase: fs.readFileSync(privateKeyPassphrase, ENCODING).trimEnd()
+        },
+        app
+      )
+      .listen(port, host);
+    log.info(`Listening on https://${host}:${port}/.`);
   })
   .then(() => {
     if (fireOnDeploy) {

@@ -5,9 +5,35 @@
 const config = require('../config'),
   covid = require('./controllers/covid'),
   { cached, endpoints, size, throttledCached } = require('./cache'),
-  { DESCRIPTOR, API_BASE_URL } = require('./constants');
+  { DESCRIPTOR, API_BASE_URL } = require('./constants'),
+  swaggerDocument = require('../openapi.json'),
+  swaggerUi = require('swagger-ui-express');
+
+/*
+ * [https://github.com/swagger-api/swagger-ui/blob/master/docs/usage/configuration.md]
+ */
+const swaggerOptions = {
+  explorer: false,
+  swaggerOptions: {
+    displayRequestDuration: true,
+    operationsSorter: 'alpha',
+    showCommonExtensions: true,
+    showExtensions: true,
+    syntaxHighlight: {
+      activate: true,
+      theme: 'arta'
+    },
+    tagsSorter: 'alpha',
+    tryItOutEnabled: true
+  }
+};
 
 exports.init = app => {
+  /*
+   * Endpoint de Swagger UI.
+   */
+  app.use(`${API_BASE_URL}/swagger`, swaggerUi.serve, swaggerUi.setup(swaggerDocument, swaggerOptions));
+
   /*
    * Punto de entrada principal. Devuelve información básica del API.
    */
@@ -31,7 +57,6 @@ exports.init = app => {
    * cantidades de objetos.
    */
   app.get(`${API_BASE_URL}/count`, cached(covid.count));
-  app.get(`${API_BASE_URL}/get-cases`, throttledCached(covid.getCases));
   app.get(`${API_BASE_URL}/last_update`, cached(covid.lastUpdate));
   app.get(`${API_BASE_URL}/province/:slug`, throttledCached(covid.provinceCases));
   app.get(`${API_BASE_URL}/province/:slug/count`, cached(covid.provinceCount));

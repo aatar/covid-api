@@ -6,17 +6,20 @@
 
 An API for querying SARS-CoV-2 cases in Argentina.
 
-This API is an improvement of [another COVID-19 API](https://covid19api.it.itba.edu.ar/api/v1/swagger/). It has the same endpoints, but works over a database on-disk instead of memory, so it supports larger datasets (of several _GiB_).
+This API is an improvement of [another COVID-19 API](https://covid19api.it.itba.edu.ar/api/v1/swagger/). It has the same endpoints, but works over a database on-disk instead of memory, so it supports larger datasets (of several _GiB_). Additionally, we provide a customizable cache for accelerating queries, without the need to access the database.
 
 ## Documentation
 
-The format and the dataset itself is obtained from the [National Directorate of Epidemiology and Analysis of Health Situation](http://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina). It updates every day at _20:00_ (UTC-3). You can change the source of the dataset, however.
+The format and the dataset itself is obtained from the [National Directorate of Epidemiology and Analysis of Health Situation](http://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina). It updates every day at _00:00_ (UTC-3). You can change the source of the dataset, however.
+
+After executing the project, visit the `/api/v0.1.0/swagger` endpoint to access the _Swagger UI_. It uses [OpenAPI v3.0.3](https://swagger.io/specification/) specification to show the available endpoints.
 
 ## Requirements
 
 You need the following:
 
 * [Node.js v10.14.1](https://nodejs.org/) (it comes with NPM v6.4.1).
+* [OpenSSL v1.1.1i](https://openssl.org/), or superior.
 * [PostgreSQL v9.6](https://www.postgresql.org/), or superior.
 
 ## Build
@@ -37,7 +40,10 @@ NODE_ENV=development
 
 # Server:
 HOST=localhost
-PORT=8080
+PORT=8443
+CERTIFICATE=certificate.pem
+PRIVATE_KEY=private-key.pem
+PRIVATE_KEY_PASSPHRASE=private-key-passphrase
 
 # Database:
 DB_HOST=localhost
@@ -69,6 +75,9 @@ Where:
 | `NODE_ENV`               | One of `development`, `testing` or `production`. |
 | `HOST`                   | The interface where the server will listen (_e.g._, _0.0.0.0_). |
 | `PORT`                   | The port where to expose the server API of this project. |
+| `CERTIFICATE`            | The file that contains a valid certificate, or a self-signed one (in PEM format). |
+| `PRIVATE_KEY`            | The file that contains the private-key associated with the certificate (in PEM format). |
+| `PRIVATE_KEY_PASSPHRASE` | The file that contains the passphrase of the private-key. |
 | `DB_HOST`                | The IP or URI of the database host (_e.g._, _localhost_). |
 | `DB_NAME_DEV`            | The name of the development's database. |
 | `DB_NAME_TEST`           | The name of the test's database. |
@@ -88,12 +97,39 @@ Where:
 | `UPLOAD_TARGET`          | How many records should be stored in database before logging the current count during a database update. |
 | `UPLOAD_THRESHOLD`       | How many records will transfer the application to the database in a bulk _upsert_ procedure. |
 
-Run this in the root of the repository to finally run the project:
+Because this runs over TLS (Transport Layer Security), you need a private-key and a self-signed certificate (or a valid certificate chain) to execute. With OpenSSL, you can create boths. Run this commands in order in the root of the repository:
+
+```bash
+user@machine:path$ openssl rand -out private-key-passphrase -base64 48
+user@machine:path$ openssl ecparam -genkey -name secp384r1 -outform PEM -out private-key_.pem -conv_form uncompressed -param_enc named_curve -check -noout
+user@machine:path$ openssl ec -inform PEM -outform PEM -in private-key_.pem -out private-key.pem -AES-256-CBC -passout stdin -conv_form uncompressed -param_enc named_curve -check < private-key-passphrase
+user@machine:path$ rm private-key_.pem
+user@machine:path$ openssl req -config .resource/openssl/1.1.1i/root -x509 -keyform PEM -inform PEM -outform PEM -passin stdin -key private-key.pem -out certificate.pem -sha512 -days 3650 -utf8 -verify -verbose -addext "subjectAltName=critical,DNS:covid-api.itba.edu.ar,email:covid-api@itba.edu.ar" < private-key-passphrase
+user@machine:path$ openssl x509 -inform PEM -in certificate.pem -noout -text
+```
+
+With this commands you get a `certificate.pem`, a `private-key.pem` and a `private-key-passphrase` file in the root of the project. How you may see in this commands, the private-key is an elliptic curve `secp384r1` protected with AES-256 in CBC mode. The passphrase is just _48_ bytes of Base-64 encoded random data and the certificate is of type _X.509 v3_ with _10 years_ of validity, a SHA-512 digest and a proper _Subject Alternative Name (SAN)_, that obviously you can modify to your needs. The last command just prints-out the certificate in a human-readable form.
+
+Its not required, but you can modify the `.resource/openssl/1.1.1i/root` file, for example, to change the _Distinguished Name (DN)_ of the root certificate.
+
+Be aware that, because of the SAN, you may need to have a valid domain name or an static entry in the `/etc/hosts` file (in _Windows_, the same file can be finded at `C:\Windows\System32\drivers\etc\hosts`).
+
+If you access an endpoint you can expect a failure in the certificate chain, and that's fine: you need to add the self-signed certificate to your computer's __trust-store__. To do this, you must check the documentation of your OS.
+
+Finnaly, run this in the root of the repository to run the project:
 
 ```bash
 user@machine:path$ npm run migrations
 user@machine:path$ npm start
 ```
+
+If you need to access the app externally and you don't want to deploy on a real server, you can configure a _port-forwarding_ on your router. It should have:
+
+* A `<host:port>` pair with the values of your local application (_e.g._, _192.168.0.7:8443_).
+* A `<0.0.0.0:port>` pair with a public port and an all-zeros IP (_e.g._, _0.0.0.0:443_).
+* An indication that the forwarding is for `TCP` protocol (instead of UDP).
+
+Then, to find your public IP, you can go to [ipinfo.io](https://ipinfo.io/what-is-my-ip).
 
 ## Deploy
 
