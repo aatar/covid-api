@@ -23,10 +23,11 @@
       "variables": {
         "host": {
           "enum": [
+            "covid19api.it.itba.edu.ar",
             "covid-api.itba.edu.ar",
             "localhost"
           ],
-          "default": "covid-api.itba.edu.ar",
+          "default": "covid19api.it.itba.edu.ar",
           "description": "The host of the application."
         },
         "port": {
