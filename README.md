@@ -44,6 +44,7 @@ PORT=8443
 CERTIFICATE=certificate.pem
 PRIVATE_KEY=private-key.pem
 PRIVATE_KEY_PASSPHRASE=private-key-passphrase
+USE_TLS=true
 
 # Database:
 DB_HOST=localhost
@@ -78,6 +79,7 @@ Where:
 | `CERTIFICATE`            | The file that contains a valid certificate, or a self-signed one (in PEM format). |
 | `PRIVATE_KEY`            | The file that contains the private-key associated with the certificate (in PEM format). |
 | `PRIVATE_KEY_PASSPHRASE` | The file that contains the passphrase of the private-key. |
+| `USE_TLS`                | A flag to indicate the use of a secure transport protocol (use TLS by default). |
 | `DB_HOST`                | The IP or URI of the database host (_e.g._, _localhost_). |
 | `DB_NAME_DEV`            | The name of the development's database. |
 | `DB_NAME_TEST`           | The name of the test's database. |
@@ -97,7 +99,7 @@ Where:
 | `UPLOAD_TARGET`          | How many records should be stored in database before logging the current count during a database update. |
 | `UPLOAD_THRESHOLD`       | How many records will transfer the application to the database in a bulk _upsert_ procedure. |
 
-Because this runs over TLS (Transport Layer Security), you need a private-key and a self-signed certificate (or a valid certificate chain) to execute. With OpenSSL, you can create boths. Run this commands in order in the root of the repository:
+Because this may runs over TLS (Transport Layer Security), you need a private-key and a self-signed certificate (or a valid certificate chain) to execute. With OpenSSL, you can create boths. Run this commands in order in the root of the repository:
 
 ```bash
 user@machine:path$ openssl rand -out private-key-passphrase -base64 48
