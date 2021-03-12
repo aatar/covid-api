@@ -5,11 +5,12 @@
 const app = require('./app'),
   config = require('./config'),
   fs = require('fs'),
+  http = require('http'),
   https = require('https'),
   log = require('./app/logger'),
   migrationsManager = require('./migrations');
 
-const { host, port, certificate, privateKey, privateKeyPassphrase } = config.server;
+const { host, port, certificate, privateKey, privateKeyPassphrase, useTLS } = config.server;
 const { covidDataset, cronSchema, fireOnDeploy, localDataset, retryDownload } = config.app;
 const { download, exception, schedule, store } = require('./app/persistence');
 const ENCODING = 'utf8';
@@ -46,17 +47,22 @@ const covidTask = () => {
 Promise.resolve()
   .then(() => migrationsManager.check())
   .then(() => {
-    https
-      .createServer(
-        {
-          cert: fs.readFileSync(certificate, ENCODING),
-          key: fs.readFileSync(privateKey, ENCODING),
-          passphrase: fs.readFileSync(privateKeyPassphrase, ENCODING).trimEnd()
-        },
-        app
-      )
-      .listen(port, host);
-    log.info(`Listening on https://${host}:${port}/.`);
+    if (useTLS) {
+      https
+        .createServer(
+          {
+            cert: fs.readFileSync(certificate, ENCODING),
+            key: fs.readFileSync(privateKey, ENCODING),
+            passphrase: fs.readFileSync(privateKeyPassphrase, ENCODING).trimEnd()
+          },
+          app
+        )
+        .listen(port, host);
+      log.info(`Listening on https://${host}:${port}/. TLS enabled.`);
+    } else {
+      http.createServer({}, app).listen(port, host);
+      log.info(`Listening on http://${host}:${port}/. TLS disabled.`);
+    }
   })
   .then(() => {
     if (fireOnDeploy) {
