@@ -33,6 +33,7 @@ const baseConfig = {
     certificate: process.env.CERTIFICATE || 'certificate.pem',
     privateKey: process.env.PRIVATE_KEY || 'private-key.pem',
     privateKeyPassphrase: process.env.PRIVATE_KEY_PASSPHRASE || 'private-key-passphrase',
+    useTLS: process.env.USE_TLS === 'true',
     http: {
       bodySizeLimit: parseInt(process.env.BODY_SIZE_LIMIT) || 1024 * 1024 * 10,
       paginateLimit: parseInt(process.env.PAGINATE_LIMIT) || 3,
