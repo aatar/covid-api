@@ -2,12 +2,11 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SARS-CoV-2 API",
-    "description": "An API for querying SARS-CoV-2 cases in Argentina.\n\nThis API is an improvement of [another COVID-19 API](https://covid19api.it.itba.edu.ar/api/v1/swagger/). It has the same endpoints, but works over a database on-disk instead of memory, so it supports larger datasets (of several _GiB_). Additionally, we provide a customizable cache for accelerating queries, without the need to access the database.",
+    "description": "An API for querying SARS-CoV-2 cases in Argentina.\n\nThis API is an improvement of [another COVID-19 API](https://github.com/alavarello/covid-api). It has the same endpoints, but works over a database on-disk instead of memory, so it supports larger datasets (of several _GiB_). Additionally, we provide a customizable cache for accelerating queries, without the need to access the database.",
     "termsOfService": "",
     "contact": {
       "name": "COVID API Support",
-      "url": "https://github.com/aatar/covid-api/issues",
-      "email": "covid-api@itba.edu.ar"
+      "url": "https://github.com/aatar/covid-api/issues"
     },
     "license": {
       "name": "MIT License",
@@ -24,7 +23,6 @@
         "host": {
           "enum": [
             "covid19api.it.itba.edu.ar",
-            "covid-api.itba.edu.ar",
             "localhost"
           ],
           "default": "covid19api.it.itba.edu.ar",
@@ -32,7 +30,9 @@
         },
         "port": {
           "enum": [
+            "80",
             "443",
+            "8080",
             "8443"
           ],
           "default": "443",

@@ -77,7 +77,8 @@
 		"lint-fix": "eslint \"**/*.js\" --fix --ignore-pattern ./.eslintrc.js",
 		"migrations": "sequelize db:migrate",
 		"prestart": "npm run lint",
-		"start": "nodemon --inspect server.js"
+		"start": "nodemon --inspect server.js",
+		"start-production": "node server.js & disown -h"
 	},
 	"version": "0.1.0"
 }
