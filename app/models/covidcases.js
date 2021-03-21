@@ -13,7 +13,7 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: false
       },
       sexo: {
-        type: Sequelize.STRING(4),
+        type: Sequelize.STRING(2),
         allowNull: true
       },
       edad: {
@@ -78,7 +78,7 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: true
       },
       carga_provincia_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(2),
         allowNull: true
       },
       origen_financiamiento: {
@@ -94,7 +94,7 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: true
       },
       residencia_provincia_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(2),
         allowNull: true
       },
       fecha_diagnostico: {
@@ -102,7 +102,7 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: true
       },
       residencia_departamento_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(3),
         allowNull: true
       },
       ultima_actualizacion: {

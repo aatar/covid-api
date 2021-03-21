@@ -58,7 +58,8 @@ const baseConfig = {
     retryDownload: parseInt(process.env.RETRY_DOWNLOAD) || 10 * 60,
     shrinkingFactor: parseFloat(process.env.SHRINKING_FACTOR) || 0.5,
     updateTarget: parseInt(process.env.UPDATE_TARGET) || 1e5,
-    uploadThreshold: parseInt(process.env.UPLOAD_THRESHOLD) || 8192
+    uploadThreshold: parseInt(process.env.UPLOAD_THRESHOLD) || 8192,
+    useFastStore: process.env.USE_FAST_STORE === 'true'
   },
   global: {
     caching: true,

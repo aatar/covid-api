@@ -18,7 +18,7 @@ const config = require('../../config'),
   path = require('path'),
   schedule = require('node-schedule');
 
-const { CovidCases } = require('../models');
+const { CovidCases, sequelize } = require('../models');
 
 /*
  * Constantes.
@@ -133,6 +133,39 @@ module.exports = {
           }
         }
       });
+    });
+  },
+
+  /*
+   * Almacena un dataset en la base de datos utilizando un método acelerado de
+   * carga dependiente de la base de datos (debe ser PostgreSQL).
+   */
+  fastStore(dataset) {
+    return new Promise(async (resolve_, reject_) => {
+      cache.disable();
+      await new Promise(resolve => setTimeout(resolve, CACHE_COOLDOWN));
+      cache.invalidate();
+      const resolve = x => {
+        config.global.updating = false;
+        cache.enable();
+        resolve_(x);
+      };
+      const reject = x => {
+        config.global.updating = false;
+        reject_(x);
+      };
+      const startTime = process.hrtime();
+      config.global.updating = true;
+      await sequelize
+        .query(`TRUNCATE TABLE "CovidCases"; COPY "CovidCases" FROM '${dataset}' WITH DELIMITER ',' CSV HEADER;`)
+        .then(() => CovidCases.count())
+        .then(count => {
+          log.info(`The last count is: ${count} records.`);
+          const time = process.hrtime(startTime);
+          log.info(`Updated database in ${time[0] + 1E-9 * time[1]} s.`);
+          resolve();
+        })
+        .catch(error => reject(error));
     });
   },
 

@@ -10,9 +10,9 @@ const app = require('./app'),
   log = require('./app/logger'),
   migrationsManager = require('./migrations');
 
-const { host, port, certificate, privateKey, privateKeyPassphrase, useTLS } = config.server;
-const { covidDataset, cronSchema, fireOnDeploy, localDataset, retryDownload } = config.app;
-const { download, exception, schedule, store } = require('./app/persistence');
+const { certificate, host, port, privateKey, privateKeyPassphrase, useTLS } = config.server;
+const { covidDataset, cronSchema, fireOnDeploy, localDataset, retryDownload, useFastStore } = config.app;
+const { download, exception, fastStore, schedule, store } = require('./app/persistence');
 const ENCODING = 'utf8';
 
 /*
@@ -24,7 +24,12 @@ const ENCODING = 'utf8';
 const covidTask = () => {
   log.info('Executing scheduled task: COVID...');
   return download(covidDataset, localDataset)
-    .then(store)
+    .then(dataset => {
+      if (useFastStore) {
+        return fastStore(dataset);
+      }
+      return store(dataset);
+    })
     .catch(error => {
       if (error instanceof exception.DownloadError) {
         log.error(`${error} (${error.statusCode} : ${error.statusMessage}).`);
