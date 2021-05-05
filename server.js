@@ -4,14 +4,24 @@
 
 const app = require('./app'),
   config = require('./config'),
+  extract = require('extract-zip'),
   fs = require('fs'),
   http = require('http'),
   https = require('https'),
   log = require('./app/logger'),
-  migrationsManager = require('./migrations');
+  migrationsManager = require('./migrations'),
+  path = require('path');
 
 const { certificate, host, port, privateKey, privateKeyPassphrase, useTLS } = config.server;
-const { covidDataset, cronSchema, fireOnDeploy, localDataset, retryDownload, useFastStore } = config.app;
+const {
+  covidDataset,
+  cronSchema,
+  fireOnDeploy,
+  localDataset,
+  retryDownload,
+  unzippedDataset,
+  useFastStore
+} = config.app;
 const { download, exception, fastStore, schedule, store } = require('./app/persistence');
 const ENCODING = 'utf8';
 
@@ -24,7 +34,18 @@ const ENCODING = 'utf8';
 const covidTask = () => {
   log.info('Executing scheduled task: COVID...');
   return download(covidDataset, localDataset)
+    .then(async dataset => {
+      if (dataset.endsWith('.zip')) {
+        log.info(`Extracting file '${dataset}'.`);
+        await extract(dataset, { dir: __dirname });
+        log.info(`File extraction completed on '${__dirname}'.`);
+        return path.join(__dirname, unzippedDataset);
+      }
+      log.info(`The dataset '${dataset}', doesn't require ZIP-extraction.`);
+      return dataset;
+    })
     .then(dataset => {
+      log.info(`Storing file '${dataset}'...`);
       if (useFastStore) {
         return fastStore(dataset);
       }

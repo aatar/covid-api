@@ -6,6 +6,8 @@
 
 require('dotenv').config();
 
+const os = require('os');
+
 /*
  * Agrega más propiedades a un objeto, sin sobreescribir las que ya existían.
  */
@@ -27,6 +29,7 @@ const aggregate = (source, target) => {
  */
 const baseConfig = {
   environment: process.env.NODE_ENV || 'development',
+  platform: os.platform() === 'win32' ? 'Windows' : 'Other',
   server: {
     host: process.env.HOST || 'localhost',
     port: parseInt(process.env.PORT) || 8443,
@@ -59,7 +62,8 @@ const baseConfig = {
     shrinkingFactor: parseFloat(process.env.SHRINKING_FACTOR) || 0.5,
     updateTarget: parseInt(process.env.UPDATE_TARGET) || 1e5,
     uploadThreshold: parseInt(process.env.UPLOAD_THRESHOLD) || 8192,
-    useFastStore: process.env.USE_FAST_STORE === 'true'
+    useFastStore: process.env.USE_FAST_STORE === 'true',
+    unzippedDataset: process.env.UNZIPPED_DATASET || 'Covid19Casos.csv'
   },
   global: {
     caching: true,

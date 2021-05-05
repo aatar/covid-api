@@ -48,8 +48,9 @@ node_modules
 # VS Code
 .vscode/
 
-# CSV databases
+# CSV/ZIP databases
 *.csv
+*.zip
 
 # Certificates and private-keys
 *.pem

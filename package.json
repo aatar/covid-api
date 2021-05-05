@@ -16,6 +16,7 @@
 		"express-paginate": "^1.0.0",
 		"express-validator": "^6.1.1",
 		"express-wolox-logger": "0.0.2",
+		"extract-zip": "^2.0.1",
 		"factory-girl": "^5.0.4",
 		"jsonwebtoken": "^8.5.1",
 		"jwt-simple": "^0.5.1",
@@ -80,5 +81,5 @@
 		"prestart": "npm run lint",
 		"start": "nodemon --inspect server.js"
 	},
-	"version": "0.2.0"
+	"version": "0.3.0"
 }

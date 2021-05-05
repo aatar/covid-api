@@ -12,13 +12,13 @@
       "name": "MIT License",
       "url": "https://github.com/aatar/covid-api/blob/main/LICENSE.md"
     },
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "security": [],
   "servers": [
     {
-      "url": "{protocol}://{host}:{port}/api/v0.2.0",
-      "description": "Production Server v0.2.0",
+      "url": "{protocol}://{host}:{port}/api/v0.3.0",
+      "description": "Production Server v0.3.0",
       "variables": {
         "protocol": {
           "enum": [
@@ -133,7 +133,7 @@
       "CaseArray": {
         "description": "An array of full-featured cases.",
         "content": {
-          "application/vnd.covid-api-v0.2.0+json": {
+          "application/vnd.covid-api-v0.3.0+json": {
             "schema": {
               "type": "array",
               "items": {
@@ -146,7 +146,7 @@
       "Count": {
         "description": "An object that only has a count of cases.",
         "content": {
-          "application/vnd.covid-api-v0.2.0+json": {
+          "application/vnd.covid-api-v0.3.0+json": {
             "schema": {
               "$ref": "#/components/schemas/Count"
             }
@@ -156,7 +156,7 @@
       "LastUpdate": {
         "description": "An object that only has a date.",
         "content": {
-          "application/vnd.covid-api-v0.2.0+json": {
+          "application/vnd.covid-api-v0.3.0+json": {
             "schema": {
               "$ref": "#/components/schemas/LastUpdate"
             }
@@ -166,7 +166,7 @@
       "ProvinceArray": {
         "description": "An array of provinces.",
         "content": {
-          "application/vnd.covid-api-v0.2.0+json": {
+          "application/vnd.covid-api-v0.3.0+json": {
             "schema": {
               "type": "array",
               "items": {
@@ -179,7 +179,7 @@
       "Stats": {
         "description": "A set of statistics about a province.",
         "content": {
-          "application/vnd.covid-api-v0.2.0+json": {
+          "application/vnd.covid-api-v0.3.0+json": {
             "schema": {
               "$ref": "#/components/schemas/Stats"
             }
@@ -189,7 +189,7 @@
       "StatsArray": {
         "description": "An array of sets of statistics about provinces.",
         "content": {
-          "application/vnd.covid-api-v0.2.0+json": {
+          "application/vnd.covid-api-v0.3.0+json": {
             "schema": {
               "type": "array",
               "items": {
@@ -202,7 +202,7 @@
       "SummaryArray": {
         "description": "An array of daily summarizations.",
         "content": {
-          "application/vnd.covid-api-v0.2.0+json": {
+          "application/vnd.covid-api-v0.3.0+json": {
             "schema": {
               "type": "array",
               "items": {

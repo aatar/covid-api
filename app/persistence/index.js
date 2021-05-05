@@ -156,8 +156,12 @@ module.exports = {
       };
       const startTime = process.hrtime();
       config.global.updating = true;
+      const fastQuery = config.platform === 'Windows'
+        ? `TRUNCATE TABLE "CovidCases"; COPY "CovidCases" FROM PROGRAM 'cmd /c "type ${dataset}"' WITH DELIMITER ',' CSV HEADER;`
+        : `TRUNCATE TABLE "CovidCases"; COPY "CovidCases" FROM PROGRAM 'cat "${dataset}"' WITH DELIMITER ',' CSV HEADER;`;
+      log.info(`Using fast query for platform '${config.platform}'.`);
       await sequelize
-        .query(`TRUNCATE TABLE "CovidCases"; COPY "CovidCases" FROM '${dataset}' WITH DELIMITER ',' CSV HEADER;`)
+        .query(fastQuery)
         .then(() => CovidCases.count())
         .then(count => {
           log.info(`The last count is: ${count} records.`);

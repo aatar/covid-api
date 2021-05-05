@@ -1,6 +1,6 @@
 [![❌](.resource/image/readme/header.svg)](https://github.com/aatar/covid-api)
 [![❌](https://img.shields.io/badge/Node.js-v10.14.1-31a100.svg?logo=Node&logoColor=white&style=for-the-badge)](https://nodejs.org/)
-[![❌](https://img.shields.io/badge/Release-v0.2.0-e91e62.svg?style=for-the-badge)](https://github.com/aatar/covid-api/releases)
+[![❌](https://img.shields.io/badge/Release-v0.3.0-e91e62.svg?style=for-the-badge)](https://github.com/aatar/covid-api/releases)
 
 # COVID-API
 
@@ -12,7 +12,7 @@ This API is an improvement of [another COVID-19 API](https://covid19api.it.itba.
 
 The format and the dataset itself is obtained from the [National Directorate of Epidemiology and Analysis of Health Situation](http://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina). It updates every day at _00:00_ (UTC-3). You can change the source of the dataset, however.
 
-After executing the project, visit the `/api/v0.2.0/swagger` endpoint to access the _Swagger UI_. It uses [OpenAPI v3.0.3](https://swagger.io/specification/) specification to show the available endpoints.
+After executing the project, visit the `/api/v0.3.0/swagger` endpoint to access the _Swagger UI_. It uses [OpenAPI v3.0.3](https://swagger.io/specification/) specification to show the available endpoints.
 
 ## Requirements
 
@@ -67,6 +67,8 @@ RETRY_DOWNLOAD=600
 SHRINKING_FACTOR=0.5
 UPDATE_TARGET=100000
 UPLOAD_THRESHOLD=8192
+USE_FAST_STORE=true
+UNZIPPED_DATASET=Covid19Casos.csv
 ```
 
 Where:
@@ -99,6 +101,7 @@ Where:
 | `UPLOAD_TARGET`          | How many records should be stored in database before logging the current count during a database update. |
 | `UPLOAD_THRESHOLD`       | How many records will transfer the application to the database in a bulk _upsert_ procedure. |
 | `USE_FAST_STORE`         | Uses a fast method to update the entire database, but it requires a PostgreSQL system. |
+| `UNZIPPED_DATASET`       | Indicates the name of the file to store when the dataset comes in ZIP format, and needs and extraction process. |
 
 Because this may runs over TLS (Transport Layer Security), you need a private-key and a self-signed certificate (or a valid certificate chain) to execute. With OpenSSL, you can create boths. Run this commands in order in the root of the repository:
 
