@@ -50,7 +50,7 @@ const covidTask = () => {
     })
     .then(dataset => {
       log.info('Changing permissions of dataset...');
-      fs.chmodSync(dataset, 0o777);
+      fs.chmodSync(dataset, 0o664);
       log.info(`Storing file '${dataset}'...`);
       if (useFastStore) {
         return fastStore(dataset);
