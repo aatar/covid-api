@@ -158,7 +158,7 @@ module.exports = {
       config.global.updating = true;
       const fastQuery = config.platform === 'Windows'
         ? `TRUNCATE TABLE "CovidCases"; COPY "CovidCases" FROM PROGRAM 'cmd /c "type ${dataset}"' WITH DELIMITER ',' CSV HEADER;`
-        : `TRUNCATE TABLE "CovidCases"; COPY "CovidCases" FROM PROGRAM 'cat "${dataset}"' WITH DELIMITER ',' CSV HEADER;`;
+        : `TRUNCATE TABLE "CovidCases"; COPY "CovidCases" FROM PROGRAM 'sh -c "cat ${dataset}"' WITH DELIMITER ',' CSV HEADER;`;
       log.info(`Using fast query for platform '${config.platform}'.`);
       await sequelize
         .query(fastQuery)
