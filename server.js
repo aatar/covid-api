@@ -37,7 +37,11 @@ const covidTask = () => {
     .then(async dataset => {
       if (dataset.endsWith('.zip')) {
         log.info(`Extracting file '${dataset}'.`);
-        await extract(dataset, { dir: __dirname });
+        await extract(dataset, {
+          dir: __dirname,
+          defaultDirMode: 0o755,
+          defaultFileMode: 0o664
+        });
         log.info(`File extraction completed on '${__dirname}'.`);
         return path.join(__dirname, unzippedDataset);
       }
