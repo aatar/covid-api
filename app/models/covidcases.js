@@ -9,7 +9,7 @@ module.exports = (sequelize, Sequelize) => {
       id_evento_caso: {
         type: Sequelize.INTEGER,
         autoIncrement: false,
-        primaryKey: true,
+        primaryKey: true,    /* Cuidado, en los datos a importar el id_evento_caso puede venir duplicado */
         allowNull: false
       },
       sexo: {
