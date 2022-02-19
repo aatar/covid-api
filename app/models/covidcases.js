@@ -2,6 +2,12 @@
 /* eslint-disable new-cap */
 /* eslint-disable no-empty-function */
 
+/*
+ * La columna 'id_evento_caso' debería ser clave primaria, pero se quitó la
+ * restricción debido a que el dataset del gobierno está mal-formado y puede
+ * contener claves duplicadas.
+ */
+
 module.exports = (sequelize, Sequelize) => {
   const CovidCases = sequelize.define(
     'CovidCases',
@@ -9,7 +15,7 @@ module.exports = (sequelize, Sequelize) => {
       id_evento_caso: {
         type: Sequelize.INTEGER,
         autoIncrement: false,
-        primaryKey: true,    /* Cuidado, en los datos a importar el id_evento_caso puede venir duplicado */
+        primaryKey: false,
         allowNull: false
       },
       sexo: {
