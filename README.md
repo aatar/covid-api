@@ -3,6 +3,7 @@
 [![❌](https://img.shields.io/badge/Release-v0.4.0-e91e62.svg?style=for-the-badge)](https://github.com/aatar/covid-api/releases)
 
 # COVID-API
+[![❌](https://badgen.net/uptime-robot/status/m790696425-849c578cc19fefeb240e66ea)](https://stats.uptimerobot.com/qXVxjs1GMm) [![❌](https://badgen.net/uptime-robot/response/m790696425-849c578cc19fefeb240e66ea)](https://stats.uptimerobot.com/qXVxjs1GMm)
 
 An API for querying SARS-CoV-2 cases in Argentina.
 
