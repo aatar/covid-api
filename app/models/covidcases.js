@@ -185,6 +185,8 @@ module.exports = (sequelize, Sequelize) => {
       ]
     }
   );
+  // Este modelo no posee una columna 'id':
+  CovidCases.removeAttribute('id');
   CovidCases.associate = () => {};
   return CovidCases;
 };
