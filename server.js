@@ -12,7 +12,7 @@ const app = require('./app'),
   migrationsManager = require('./migrations'),
   path = require('path');
 
-const { certificate, host, port, privateKey, privateKeyPassphrase, useTLS } = config.server;
+const { certificate, host, port, privateKey, privateKeyPassphrase, useCron, useTLS } = config.server;
 const {
   covidDataset,
   cronSchema,
@@ -102,5 +102,9 @@ Promise.resolve()
       covidTask();
     }
   })
-  .then(() => schedule(cronSchema, covidTask))
+  .then(() => {
+    if (useCron) {
+      schedule(cronSchema, covidTask);
+    }
+  })
   .catch(log.error);
